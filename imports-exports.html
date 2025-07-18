@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imports & Exports - Fabric.js Deep Dive</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-container">
+                <h1 class="nav-logo">Fabric.js Deep Dive</h1>
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link">Home</a></li>
+                    <li><a href="architecture.html" class="nav-link">Architecture</a></li>
+                    <li><a href="codebase.html" class="nav-link">Codebase Analysis</a></li>
+                    <li><a href="canvas-drawing.html" class="nav-link">Canvas Drawing</a></li>
+                    <li><a href="object-manipulation.html" class="nav-link">Object Manipulation</a></li>
+                    <li><a href="imports-exports.html" class="nav-link active">Imports & Exports</a></li>
+                    <li><a href="demos.html" class="nav-link">Interactive Demos</a></li>
+                    <li><a href="diagram-guide.html" class="nav-link">Understanding Diagrams</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main style="padding-top: 90px;">
+        <section class="overview">
+            <div class="container">
+                <h1>Module System: Imports, Exports & Dependency Management</h1>
+                <p>Understand how Fabric.js organizes its modules, manages dependencies, and provides different export strategies for various environments and use cases.</p>
+            </div>
+        </section>
+
+        <section class="architecture-preview">
+            <div class="container">
+                <h2>Module Export Strategy</h2>
+                <div class="beginner-note">
+                    <h3>📁 Understanding Module Dependencies</h3>
+                    <p>This diagram shows how different parts of Fabric.js connect and depend on each other:</p>
+                    <ul>
+                        <li><strong>Boxes = Modules</strong> (files or groups of related code)</li>
+                        <li><strong>Arrows = Dependencies</strong> ("this module needs that module")</li>
+                        <li><strong>Groups = Categories</strong> (related functionality bundled together)</li>
+                    </ul>
+                    <p>Think of it like ingredients in a recipe - some ingredients need others to work! <a href="diagram-guide.html">📚 Learn more</a></p>
+                </div>
+                <div class="mermaid">
+                    flowchart TD
+                        A[fabric.ts - Main Entry] --> B[Core Exports]
+                        A --> C[Shape Exports]
+                        A --> D[Canvas Exports]
+                        A --> E[Utility Exports]
+                        
+                        B --> B1[Observable]
+                        B --> B2[Point]
+                        B --> B3[Color]
+                        B --> B4[ClassRegistry]
+                        
+                        C --> C1[FabricObject]
+                        C --> C2[Shape Classes]
+                        C --> C3[Text Classes]
+                        C --> C4[Group Classes]
+                        
+                        D --> D1[StaticCanvas]
+                        D --> D2[Canvas]
+                        D --> D3[SelectableCanvas]
+                        
+                        E --> E1[Animation Utils]
+                        E --> E2[Math Utils]
+                        E --> E3[DOM Utils]
+                        E --> E4[Path Utils]
+                        
+                        F[Build System] --> G[UMD Bundle]
+                        F --> H[ES Modules]
+                        F --> I[CommonJS]
+                        F --> J[TypeScript Defs]
+                        
+                        style A fill:#667eea,color:white
+                        style F fill:#f093fb,color:white
+                </div>
+                <p>The main fabric.ts file orchestrates all exports, creating a comprehensive API surface while supporting tree-shaking and selective imports.</p>
+            </div>
+        </section>
+
+        <section class="codebase-stats">
+            <div class="container">
+                <h2>Export Analysis: Main Entry Points</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>📦 fabric.ts - Master Export File</h3>
+                        <div class="code-block">
+// Core infrastructure exports
+export { getEnv, getFabricDocument, getFabricWindow, setEnv } from './src/env';
+export { cache } from './src/cache';
+export { VERSION as version, iMatrix } from './src/constants';
+export { config } from './src/config';
+export { classRegistry } from './src/ClassRegistry';
+
+// Type-only exports for TypeScript
+export type * from './src/typedefs';
+export type * from './src/EventTypeDefs';
+
+// Canvas system exports
+export { StaticCanvas } from './src/canvas/StaticCanvas';
+export { Canvas } from './src/canvas/Canvas';
+export type { CanvasOptions } from './src/canvas/CanvasOptions';
+
+// Core geometric types
+export { Point } from './src/Point';
+export { Intersection } from './src/Intersection';
+export { Color } from './src/color/Color';</div>
+                        <p><strong>Purpose:</strong> Central export hub that exposes the complete Fabric.js API while maintaining clear separation between types and runtime code.</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h3>🏗️ index.ts - Simple Re-export</h3>
+                        <div class="code-block">
+// Simple barrel export pattern
+export * from './fabric';
+
+// This creates the main package entry point
+// Users import with: import { Canvas, Rect } from 'fabric';</div>
+                        <p><strong>Purpose:</strong> Minimal barrel export that re-exports everything from fabric.ts, providing a clean import experience for consumers.</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h3>🔧 Shape Object Exports</h3>
+                        <div class="code-block">
+// All shape classes and their types
+export {
+  FabricObject,
+  cacheProperties,
+  fabricObjectDefaultValues,
+} from './src/shapes/Object/FabricObject';
+
+export type * from './src/shapes/Object/types';
+
+// Basic shapes
+export { Rect } from './src/shapes/Rect';
+export { Circle } from './src/shapes/Circle';
+export { Triangle } from './src/shapes/Triangle';
+export { Ellipse } from './src/shapes/Ellipse';
+export { Line } from './src/shapes/Line';
+export { Polygon } from './src/shapes/Polygon';
+export { Polyline } from './src/shapes/Polyline';
+export { Path } from './src/shapes/Path';
+
+// Complex objects
+export { Group } from './src/shapes/Group';
+export { ActiveSelection } from './src/shapes/ActiveSelection';
+export { Image } from './src/shapes/Image';</div>
+                        <p><strong>Purpose:</strong> Comprehensive export of all drawable object classes, enabling users to import specific shapes as needed for tree-shaking.</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h3>🎨 Utility & System Exports</h3>
+                        <div class="code-block">
+// Animation system
+export { runningAnimations } from './src/util/animation/AnimationRegistry';
+export { easeInQuad, easeOutQuad, easeInOutQuad } from './src/util/animation/easing';
+export { animate, animateColor } from './src/util/animation/animate';
+
+// Brushes for drawing
+export { BaseBrush } from './src/brushes/BaseBrush';
+export { PencilBrush } from './src/brushes/PencilBrush';
+export { CircleBrush } from './src/brushes/CircleBrush';
+
+// Filters for image processing
+export { BaseFilter } from './src/filters/BaseFilter';
+export { BlurFilter } from './src/filters/Blur';
+export { ColorMatrixFilter } from './src/filters/ColorMatrix';
+
+// Utility functions
+export { loadSVGFromString, loadSVGFromURL } from './src/parser/loadSVGFromString';
+export { util } from './src/util';</div>
+                        <p><strong>Purpose:</strong> Supporting systems and utilities that extend core functionality, including animation, SVG parsing, and image processing.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="key-concepts">
+            <div class="container">
+                <h2>Dependency Graph Analysis</h2>
+                <div class="mermaid">
+                    graph TD
+                        subgraph "Core Dependencies"
+                            A[Observable] --> B[CommonMethods]
+                            C[Point] --> D[ObjectGeometry]
+                            E[Color] --> F[Gradient]
+                            G[ClassRegistry] --> H[Object Creation]
+                        end
+                        
+                        subgraph "Object Hierarchy"
+                            B --> I[InteractiveFabricObject]
+                            D --> I
+                            I --> J[FabricObject]
+                            J --> K[Shape Classes]
+                            J --> L[Text Classes]
+                            J --> M[Group Classes]
+                        end
+                        
+                        subgraph "Canvas System"
+                            N[StaticCanvas] --> O[SelectableCanvas]
+                            O --> P[Canvas]
+                            P --> Q[Event Handling]
+                            P --> R[Control System]
+                        end
+                        
+                        subgraph "Support Systems"
+                            S[Animation] --> T[Easing Functions]
+                            U[Filters] --> V[WebGL Backend]
+                            W[Parser] --> X[SVG Loader]
+                        end
+                        
+                        style A fill:#ff6b6b
+                        style C fill:#4ecdc4
+                        style E fill:#45b7d1
+                        style G fill:#96ceb4
+                </div>
+            </div>
+        </section>
+
+        <section class="codebase-stats">
+            <div class="container">
+                <h2>Import Pattern Examples</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>📥 Internal Import Patterns</h3>
+                        <div class="code-block">
+// Relative imports within the codebase
+import { Observable } from './Observable';
+import { CommonMethods } from './CommonMethods';
+import type { ObjectEvents } from '../../EventTypeDefs';
+import { FabricObjectSVGExportMixin } from './FabricObjectSVGExportMixin';
+import { InteractiveFabricObject } from './InteractiveObject';
+import { applyMixins } from '../../util/applyMixins';
+
+// Type-only imports for better tree-shaking
+import type { FabricObjectProps } from './types/FabricObjectProps';
+import type { TFabricObjectProps, SerializedObjectProps } from './types';
+
+// Circular dependency resolution
+import { classRegistry } from '../../ClassRegistry';</div>
+                        <p><strong>Purpose:</strong> Clear import hierarchy that avoids circular dependencies and separates type imports from runtime imports for optimal bundling.</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h3>🏷️ TypeScript Type Exports</h3>
+                        <div class="code-block">
+// Type-only exports for better IDE support
+export type * from './src/typedefs';
+export type * from './src/EventTypeDefs';
+export type { ITextEvents } from './src/shapes/IText/ITextBehavior';
+
+// Selective type exports
+export type {
+  TCanvasSizeOptions,
+  TSVGExportOptions,
+} from './src/canvas/StaticCanvas';
+
+export type { CanvasOptions } from './src/canvas/CanvasOptions';
+export type { IntersectionType } from './src/Intersection';
+export type * from './src/color/typedefs';
+
+// Complex generic types
+export type {
+  TFabricObjectProps,
+  SerializedObjectProps,
+  TProps
+} from './src/shapes/Object/types';</div>
+                        <p><strong>Purpose:</strong> Comprehensive TypeScript support with proper type separation, enabling excellent IDE autocompletion and type checking.</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h3>🔄 Mixin Pattern Imports</h3>
+                        <div class="code-block">
+// Mixin application pattern
+import { FabricObjectSVGExportMixin } from './FabricObjectSVGExportMixin';
+import { InteractiveFabricObject } from './InteractiveObject';
+import { applyMixins } from '../../util/applyMixins';
+
+// Class definition with mixin
+export class FabricObject extends InteractiveFabricObject {}
+
+// Mixin application
+applyMixins(FabricObject, [FabricObjectSVGExportMixin]);
+
+// Canvas gesture mixin
+import './canvas_gestures.mixin';
+
+// The mixin adds methods to the Canvas prototype
+// without modifying the class definition directly</div>
+                        <p><strong>Purpose:</strong> Flexible composition pattern that adds functionality without deep inheritance, enabling feature modularity and code reuse.</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h3>⚙️ Configuration & Registry</h3>
+                        <div class="code-block">
+// Global configuration
+export { config } from './src/config';
+
+// Class registry for dynamic object creation
+export { classRegistry } from './src/ClassRegistry';
+
+// Usage in object creation
+classRegistry.setClass(FabricObject);
+classRegistry.setClass(FabricObject, 'object');
+
+// Environment detection
+export { getEnv, getFabricDocument, getFabricWindow, setEnv } from './src/env';
+
+// Version and constants
+export { VERSION as version, iMatrix } from './src/constants';
+
+// Cache system
+export { cache } from './src/cache';</div>
+                        <p><strong>Purpose:</strong> Global state management and configuration systems that provide runtime configuration and dynamic object creation capabilities.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="architecture-preview">
+            <div class="container">
+                <h2>Build Target Analysis</h2>
+                <div class="mermaid">
+                    graph LR
+                        A[Source TypeScript] --> B[Rollup Build]
+                        
+                        B --> C[ES Module .mjs]
+                        B --> D[CommonJS .cjs]
+                        B --> E[UMD .js]
+                        B --> F[TypeScript .d.ts]
+                        
+                        C --> G[Modern Bundlers]
+                        D --> H[Node.js]
+                        E --> I[Browser Script Tag]
+                        F --> J[IDE Support]
+                        
+                        K[Tree Shaking] --> C
+                        L[Babel Transform] --> D
+                        M[Terser Minify] --> E
+                        N[TypeScript Compiler] --> F
+                        
+                        style A fill:#667eea,color:white
+                        style B fill:#f093fb,color:white
+                        style C fill:#4facfe,color:white
+                        style D fill:#43e97b,color:white
+                        style E fill:#ff6b6b,color:white
+                        style F fill:#feca57,color:white
+                </div>
+                <p>Multiple build targets ensure compatibility across different environments while supporting modern development practices like tree-shaking.</p>
+            </div>
+        </section>
+
+        <section class="key-concepts">
+            <div class="container">
+                <h2>Usage Patterns for Developers</h2>
+                <div class="concepts-grid">
+                    <div class="concept-card">
+                        <h3>Full Library Import</h3>
+                        <p>Import the entire library for applications that use many Fabric.js features. Good for rapid prototyping and feature-rich applications.</p>
+                        <div class="code-block">
+// Full import
+import { fabric } from 'fabric';
+
+// All classes available on fabric namespace
+const canvas = new fabric.Canvas('canvas');
+const rect = new fabric.Rect({ width: 100, height: 100 });</div>
+                    </div>
+                    
+                    <div class="concept-card">
+                        <h3>Selective Imports</h3>
+                        <p>Import only needed classes for optimal bundle size. Modern bundlers can tree-shake unused code automatically.</p>
+                        <div class="code-block">
+// Selective imports for tree-shaking
+import { Canvas, Rect, Circle, Text } from 'fabric';
+
+const canvas = new Canvas('canvas');
+const rect = new Rect({ width: 100, height: 100 });
+const circle = new Circle({ radius: 50 });</div>
+                    </div>
+                    
+                    <div class="concept-card">
+                        <h3>Type-Only Imports</h3>
+                        <p>Import types for TypeScript development without including runtime code, perfect for type annotations and interfaces.</p>
+                        <div class="code-block">
+// Type imports don't affect bundle size
+import type { 
+    FabricObject, 
+    CanvasOptions, 
+    TPointerEvent 
+} from 'fabric';
+
+function handleCanvasClick(e: TPointerEvent) {
+    // Type-safe event handling
+}</div>
+                    </div>
+                    
+                    <div class="concept-card">
+                        <h3>Extension Imports</h3>
+                        <p>Optional extensions provide additional functionality like alignment guidelines without bloating the core library.</p>
+                        <div class="code-block">
+// Optional extensions
+import 'fabric/extensions';
+
+// Or specific extensions
+import { AligningGuidelines } from 'fabric/extensions/aligning_guidelines';
+
+const canvas = new Canvas('canvas');
+canvas.set('aligningGuidelines', new AligningGuidelines());</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="getting-started">
+            <div class="container">
+                <h2>Package.json Export Configuration</h2>
+                <div class="code-block">
+<div class="code-title">Advanced Export Mapping</div>
+{
+  "exports": {
+    ".": {
+      "node": null,
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.min.mjs",
+      "require": "./dist/index.min.js",
+      "default": "./dist/index.min.js"
+    },
+    "./es": {
+      "node": null,
+      "types": "./dist/index.d.ts", 
+      "import": "./dist/fabric.min.mjs",
+      "require": null,
+      "default": null
+    },
+    "./node": {
+      "node": "./dist/index.node.cjs",
+      "types": "./dist/index.node.d.ts",
+      "import": "./dist/index.node.mjs",
+      "require": "./dist/index.node.cjs",
+      "default": "./dist/index.node.cjs"
+    },
+    "./extensions": {
+      "node": "./dist-extensions/index.mjs",
+      "types": "./dist-extensions/extensions/index.d.ts",
+      "import": "./dist-extensions/index.mjs",
+      "require": null,
+      "default": "./dist-extensions/fabric-extensions.min.js"
+    }
+  }
+}</div>
+                <p>Sophisticated export mapping provides the right build for each environment and import style, enabling optimal performance across all platforms.</p>
+            </div>
+        </section>
+
+        <section class="codebase-stats">
+            <div class="container">
+                <h2>Dependency Management Best Practices</h2>
+                <div class="nav-cards">
+                    <div class="nav-card">
+                        <h3>🔄 Circular Dependency Avoidance</h3>
+                        <p>Careful import structure prevents circular dependencies through strategic abstraction and interface definitions.</p>
+                    </div>
+                    <div class="nav-card">
+                        <h3>📦 Bundle Optimization</h3>
+                        <p>Type-only imports and tree-shakeable exports ensure minimal bundle sizes for production applications.</p>
+                    </div>
+                    <div class="nav-card">
+                        <h3>🔧 Environment Flexibility</h3>
+                        <p>Multiple build targets support Node.js, browsers, and modern bundlers with appropriate optimizations.</p>
+                    </div>
+                    <div class="nav-card">
+                        <h3>📚 Developer Experience</h3>
+                        <p>Comprehensive TypeScript support and clear import patterns provide excellent IDE integration and autocompletion.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Fabric.js Deep Dive Documentation. Created for educational purposes.</p>
+        </div>
+    </footer>
+
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+</body>
+</html>

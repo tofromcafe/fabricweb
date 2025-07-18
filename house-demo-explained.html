@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>House Demo Explained - Fabric.js Deep Dive</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-container">
+                <h1 class="nav-logo">Fabric.js Deep Dive</h1>
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link">Home</a></li>
+                    <li><a href="architecture.html" class="nav-link">Architecture</a></li>
+                    <li><a href="codebase.html" class="nav-link">Codebase Analysis</a></li>
+                    <li><a href="canvas-drawing.html" class="nav-link">Canvas Drawing</a></li>
+                    <li><a href="object-manipulation.html" class="nav-link">Object Manipulation</a></li>
+                    <li><a href="imports-exports.html" class="nav-link">Imports & Exports</a></li>
+                    <li><a href="demos.html" class="nav-link">Interactive Demos</a></li>
+                    <li><a href="diagram-guide.html" class="nav-link">Understanding Diagrams</a></li>
+                    <li><a href="house-builder.html" class="nav-link">House Builder</a></li>
+                    <li><a href="house-demo-explained.html" class="nav-link active">Demo Explained</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main style="padding-top: 90px;">
+        <section class="overview">
+            <div class="container">
+                <h1>Building the House Demo: From First Principles</h1>
+                <p>A complete technical breakdown of how the House Builder demo was created, the technologies used, and how to adapt it for modern frameworks like React.</p>
+                
+                <div class="beginner-note">
+                    <h3>🎯 What You'll Learn</h3>
+                    <ul>
+                        <li><strong>First Principles:</strong> Starting from basic HTML, CSS, and JavaScript</li>
+                        <li><strong>Vanilla JavaScript:</strong> No frameworks, just pure browser APIs</li>
+                        <li><strong>Canvas Programming:</strong> How 2D graphics work in browsers</li>
+                        <li><strong>Event Handling:</strong> Making websites interactive</li>
+                        <li><strong>Modern Adaptation:</strong> Converting to React components</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="demo-section">
+            <div class="container">
+                <h2>🧱 First Principles: What Is a Web Application?</h2>
+                <div class="concepts-grid">
+                    <div class="concept-card">
+                        <h3>🌐 The Browser Foundation</h3>
+                        <p><strong>Think of the browser like a smart TV:</strong></p>
+                        <ul>
+                            <li><strong>HTML</strong> = The channels and content structure</li>
+                            <li><strong>CSS</strong> = The visual styling and layout</li>
+                            <li><strong>JavaScript</strong> = The remote control that makes things interactive</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="concept-card">
+                        <h3>🎨 Canvas: A Digital Drawing Board</h3>
+                        <p><strong>The HTML5 Canvas is like a blank canvas for artists:</strong></p>
+                        <ul>
+                            <li>You can draw shapes, lines, and images</li>
+                            <li>Everything is made of pixels (tiny colored dots)</li>
+                            <li>JavaScript tells the canvas what to draw and where</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="concept-card">
+                        <h3>⚡ Events: Making Things Interactive</h3>
+                        <p><strong>Events are like pressing buttons on a remote:</strong></p>
+                        <ul>
+                            <li>User clicks a button → JavaScript function runs</li>
+                            <li>User drags an object → JavaScript updates position</li>
+                            <li>User resizes window → JavaScript adjusts layout</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="concept-card">
+                        <h3>📚 Libraries: Pre-built Tools</h3>
+                        <p><strong>Fabric.js is like a toolbox for canvas:</strong></p>
+                        <ul>
+                            <li>Instead of drawing pixels manually, use pre-made shapes</li>
+                            <li>Built-in drag, resize, and rotate functionality</li>
+                            <li>Handles complex math and interactions for you</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="demo-section">
+            <div class="container">
+                <h2>🛠️ Technology Stack Breakdown</h2>
+                <div class="demo-grid">
+                    <div class="demo-explanation">
+                        <h3>What Technologies Were Used?</h3>
+                        <div class="explanation-cards">
+                            <div class="explanation-card">
+                                <h4>✅ Vanilla JavaScript (ES6+)</h4>
+                                <p><strong>Yes, this demo uses pure JavaScript!</strong></p>
+                                <ul>
+                                    <li><strong>No React, Vue, or Angular</strong></li>
+                                    <li><strong>No build tools</strong> like Webpack or Vite</li>
+                                    <li><strong>No npm packages</strong> except Fabric.js from CDN</li>
+                                    <li><strong>Direct browser APIs</strong> and DOM manipulation</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="explanation-card">
+                                <h4>🎨 Modern CSS (Grid, Flexbox, Gradients)</h4>
+                                <ul>
+                                    <li><strong>CSS Grid:</strong> Layout for controls panel</li>
+                                    <li><strong>Flexbox:</strong> Button alignment and spacing</li>
+                                    <li><strong>CSS Gradients:</strong> Beautiful backgrounds</li>
+                                    <li><strong>CSS Variables:</strong> Consistent colors</li>
+                                    <li><strong>Responsive Design:</strong> Mobile-friendly</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="explanation-card">
+                                <h4>📐 Fabric.js Canvas Library</h4>
+                                <ul>
+                                    <li><strong>Vector Graphics:</strong> Scalable shapes</li>
+                                    <li><strong>Object Model:</strong> Each shape is an object</li>
+                                    <li><strong>Event System:</strong> Click, drag, resize events</li>
+                                    <li><strong>Rendering Engine:</strong> Efficient canvas updates</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="explanation-card">
+                                <h4>🖼️ SVG Icons</h4>
+                                <ul>
+                                    <li><strong>Scalable Vector Graphics:</strong> Crisp at any size</li>
+                                    <li><strong>Inline SVG:</strong> Embedded directly in HTML</li>
+                                    <li><strong>CSS Styling:</strong> Colors change with themes</li>
+                                    <li><strong>Semantic Icons:</strong> Meaningful visual cues</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="diagram-container">
+                        <div class="mermaid">
+                            graph TD
+                                A[HTML Structure] --> B[CSS Styling]
+                                B --> C[Vanilla JavaScript]
+                                C --> D[Fabric.js Library]
+                                D --> E[Canvas Rendering]
+                                
+                                F[User Clicks Button] --> G[Event Listener]
+                                G --> H[JavaScript Function]
+                                H --> I[Create Fabric Object]
+                                I --> J[Add to Canvas]
+                                J --> K[Visual Update]
+                                
+                                style A fill:#e3f2fd
+                                style C fill:#f3e5f5
+                                style D fill:#e8f5e8
+                                style F fill:#fff3e0
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="demo-section">
+            <div class="container">
+                <h2>🔍 Code Analysis: Step by Step</h2>
+                
+                <h3>1. HTML Structure - The Foundation</h3>
+                <div class="code-explanation">
+                    <div class="code-block">
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;!-- Meta tags for browser instructions --&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    
+    &lt;!-- Page title shown in browser tab --&gt;
+    &lt;title&gt;House Builder Demo&lt;/title&gt;
+    
+    &lt;!-- External library: Fabric.js from CDN --&gt;
+    &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"&gt;&lt;/script&gt;
+    
+    &lt;!-- Our custom styles --&gt;
+    &lt;link rel="stylesheet" href="styles.css"&gt;
+&lt;/head&gt;</div>
+                    <div class="explanation-cards">
+                        <div class="explanation-card">
+                            <h4>🔧 What Each Part Does</h4>
+                            <ul>
+                                <li><strong>DOCTYPE:</strong> Tells browser this is modern HTML5</li>
+                                <li><strong>charset="UTF-8":</strong> Supports all characters/emojis</li>
+                                <li><strong>viewport:</strong> Makes it work on mobile devices</li>
+                                <li><strong>CDN Script:</strong> Loads Fabric.js from internet</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <h3>2. Canvas Element - The Drawing Surface</h3>
+                <div class="code-explanation">
+                    <div class="code-block">
+&lt;!-- The canvas where all graphics are drawn --&gt;
+&lt;canvas id="houseCanvas" width="800" height="600"&gt;&lt;/canvas&gt;
+
+&lt;!-- Buttons to trigger different actions --&gt;
+&lt;button class="builder-btn house-btn" id="addHouseBtn"&gt;
+    &lt;!-- SVG icon embedded directly in HTML --&gt;
+    &lt;svg class="icon" viewBox="0 0 24 24"&gt;
+        &lt;path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z" /&gt;
+    &lt;/svg&gt;
+    Add House
+&lt;/button&gt;</div>
+                    <div class="explanation-cards">
+                        <div class="explanation-card">
+                            <h4>🎨 Canvas Fundamentals</h4>
+                            <ul>
+                                <li><strong>id="houseCanvas":</strong> JavaScript finds this element</li>
+                                <li><strong>width/height:</strong> Canvas size in pixels</li>
+                                <li><strong>SVG viewBox:</strong> Coordinate system for icon</li>
+                                <li><strong>path d="":</strong> Drawing instructions for icon shape</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <h3>3. CSS Styling - Making It Beautiful</h3>
+                <div class="code-explanation">
+                    <div class="code-block">
+/* CSS Grid for responsive layout */
+.builder-grid {
+    display: grid;
+    grid-template-columns: 1fr 300px;  /* Main area + sidebar */
+    gap: 30px;
+    align-items: start;
+}
+
+/* Gradient backgrounds for visual appeal */
+.builder-btn {
+    background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+    border: none;
+    border-radius: 12px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;  /* Smooth hover effects */
+}
+
+/* Hover effects for interactivity feedback */
+.builder-btn:hover {
+    transform: translateY(-2px);        /* Lift up slightly */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);  /* Add shadow */
+}</div>
+                    <div class="explanation-cards">
+                        <div class="explanation-card">
+                            <h4>🎨 CSS Magic Explained</h4>
+                            <ul>
+                                <li><strong>CSS Grid:</strong> Modern layout system, better than old tables</li>
+                                <li><strong>linear-gradient:</strong> Smooth color transitions</li>
+                                <li><strong>transform:</strong> Move/scale elements without affecting layout</li>
+                                <li><strong>transition:</strong> Smooth animations between states</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <h3>4. JavaScript - The Brains of the Operation</h3>
+                <div class="code-explanation">
+                    <div class="code-block">
+// Wait for page to fully load before running JavaScript
+window.addEventListener('load', function() {
+    
+    // Create a new Fabric.js canvas instance
+    const canvas = new fabric.Canvas('houseCanvas');
+    
+    // Set a beautiful gradient background
+    canvas.setBackgroundColor({
+        type: 'linear',                    // Linear gradient
+        coords: { x1: 0, y1: 0, x2: 0, y2: 600 },  // From top to bottom
+        colorStops: [                      // Color transition points
+            { offset: 0, color: '#87CEEB' },      // Sky blue at top
+            { offset: 0.7, color: '#98FB98' },    // Light green
+            { offset: 1, color: '#90EE90' }       // Green at bottom
+        ]
+    }, canvas.renderAll.bind(canvas));
+    
+    // Add event listener to house button
+    document.getElementById('addHouseBtn').addEventListener('click', () => {
+        // Create a new rectangle object
+        const house = new fabric.Rect({
+            left: 100,              // X position
+            top: 200,               // Y position  
+            width: 120,             // Width in pixels
+            height: 100,            // Height in pixels
+            fill: '#DEB887',        // Fill color (burlywood)
+            stroke: '#8B4513',      // Border color (saddle brown)
+            strokeWidth: 3,         // Border thickness
+            rx: 5,                  // Rounded corner radius X
+            ry: 5                   // Rounded corner radius Y
+        });
+        
+        // Add the house to the canvas
+        canvas.add(house);
+    });
+});</div>
+                    <div class="explanation-cards">
+                        <div class="explanation-card">
+                            <h4>💡 JavaScript Concepts</h4>
+                            <ul>
+                                <li><strong>addEventListener:</strong> "Listen" for user interactions</li>
+                                <li><strong>new fabric.Rect():</strong> Create a rectangle object</li>
+                                <li><strong>canvas.add():</strong> Put the object on the canvas</li>
+                                <li><strong>Arrow functions () =&gt;:</strong> Modern JavaScript syntax</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="demo-section">
+            <div class="container">
+                <h2>🔬 Advanced Features Breakdown</h2>
+                
+                <h3>Creating Complex Objects: Trees with Multiple Parts</h3>
+                <div class="code-explanation">
+                    <div class="code-block">
+// Function to create a tree with trunk and crown
+function createTree(x, y) {
+    // Create tree trunk (rectangle)
+    const trunk = new fabric.Rect({
+        left: x + 15,
+        top: y + 50,
+        width: 12,
+        height: 40,
+        fill: '#8B4513',        // Brown color
+        originX: 'center'       // Center the trunk
+    });
+    
+    // Create tree crown (circle)
+    const crown = new fabric.Circle({
+        left: x + 20,
+        top: y + 20,
+        radius: 30,
+        fill: '#228B22',        // Forest green
+        stroke: '#006400',      // Dark green border
+        strokeWidth: 2,
+        originX: 'center',
+        originY: 'center'
+    });
+    
+    // Combine trunk and crown into one object
+    return new fabric.Group([trunk, crown]);
+}</div>
+                    <div class="explanation-cards">
+                        <div class="explanation-card">
+                            <h4>🌲 Grouping Objects</h4>
+                            <ul>
+                                <li><strong>fabric.Group:</strong> Combines multiple objects</li>
+                                <li><strong>originX/Y:</strong> Sets the anchor point for positioning</li>
+                                <li><strong>Relative positioning:</strong> Crown positioned relative to trunk</li>
+                                <li><strong>Return value:</strong> Function gives back the completed tree</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <h3>Random Positioning: Making Each Click Unique</h3>
+                <div class="code-explanation">
+                    <div class="code-block">
+// Helper function to get random position within canvas bounds
+function getRandomPosition(width = 50, height = 50) {
+    return {
+        left: Math.random() * (canvas.width - width - 100) + 50,
+        top: Math.random() * (canvas.height - height - 100) + 50
+    };
+}
+
+// Usage in button click handler
+document.getElementById('addTreeBtn').addEventListener('click', () => {
+    const pos = getRandomPosition(40, 80);  // Get random spot for tree
+    const tree = createTree(pos.left, pos.top);
+    canvas.add(tree);
+});</div>
+                    <div class="explanation-cards">
+                        <div class="explanation-card">
+                            <h4>🎲 Math.random() Explained</h4>
+                            <ul>
+                                <li><strong>Math.random():</strong> Returns number between 0 and 1</li>
+                                <li><strong>Multiply by range:</strong> Scale to desired range</li>
+                                <li><strong>Add offset:</strong> Prevent objects from appearing at edge</li>
+                                <li><strong>Subtract object size:</strong> Keep objects fully visible</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="demo-section">
+            <div class="container">
+                <h2>⚛️ Converting to React: Modern Framework Adaptation</h2>
+                
+                <div class="beginner-note">
+                    <h3>🤔 Why Convert to React?</h3>
+                    <p>React is a popular framework that makes building complex web applications easier by:</p>
+                    <ul>
+                        <li><strong>Component Reusability:</strong> Build once, use everywhere</li>
+                        <li><strong>State Management:</strong> Easier to track and update data</li>
+                        <li><strong>Developer Tools:</strong> Better debugging and development experience</li>
+                        <li><strong>Ecosystem:</strong> Thousands of pre-built components</li>
+                    </ul>
+                </div>
+
+                <h3>1. React Component Structure</h3>
+                <div class="code-explanation">
+                    <div class="code-block">
+import React, { useRef, useEffect, useState } from 'react';
+import { fabric } from 'fabric';
+
+// React functional component
+const HouseBuilder = () => {
+    // useRef: Direct access to canvas element
+    const canvasRef = useRef(null);
+    
+    // useState: Track canvas instance
+    const [canvas, setCanvas] = useState(null);
+    
+    // useEffect: Run code when component mounts
+    useEffect(() => {
+        // Initialize canvas when component first loads
+        const fabricCanvas = new fabric.Canvas(canvasRef.current, {
+            width: 800,
+            height: 600
+        });
+        
+        // Set background gradient
+        fabricCanvas.setBackgroundColor({
+            type: 'linear',
+            coords: { x1: 0, y1: 0, x2: 0, y2: 600 },
+            colorStops: [
+                { offset: 0, color: '#87CEEB' },
+                { offset: 0.7, color: '#98FB98' },
+                { offset: 1, color: '#90EE90' }
+            ]
+        }, fabricCanvas.renderAll.bind(fabricCanvas));
+        
+        setCanvas(fabricCanvas);
+        
+        // Cleanup function: Remove canvas when component unmounts
+        return () => {
+            fabricCanvas.dispose();
+        };
+    }, []);  // Empty dependency array = run once on mount
+    
+    return (
+        &lt;div className="house-builder"&gt;
+            &lt;canvas ref={canvasRef} /&gt;
+            {/* Buttons and controls will go here */}
+        &lt;/div&gt;
+    );
+};
+
+export default HouseBuilder;</div>
+                    <div class="explanation-cards">
+                        <div class="explanation-card">
+                            <h4>⚛️ React Hooks Explained</h4>
+                            <ul>
+                                <li><strong>useRef:</strong> Direct reference to DOM elements</li>
+                                <li><strong>useState:</strong> Store and update component data</li>
+                                <li><strong>useEffect:</strong> Run code at specific times</li>
+                                <li><strong>Dependency array []:</strong> Controls when effect runs</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <h3>2. React Button Component</h3>
+                <div class="code-explanation">
+                    <div class="code-block">
+// Reusable button component
+const BuilderButton = ({ onClick, icon, children, className }) => (
+    &lt;button 
+        className={`builder-btn ${className}`}
+        onClick={onClick}
+    &gt;
+        {icon && &lt;span className="icon"&gt;{icon}&lt;/span&gt;}
+        {children}
+    &lt;/button&gt;
+);
+
+// Usage in main component
+const HouseBuilder = () => {
+    const [canvas, setCanvas] = useState(null);
+    
+    // Event handler functions
+    const addHouse = () => {
+        if (!canvas) return;  // Guard clause
+        
+        const house = new fabric.Rect({
+            left: Math.random() * 600 + 100,
+            top: Math.random() * 400 + 100,
+            width: 120,
+            height: 100,
+            fill: '#DEB887',
+            stroke: '#8B4513',
+            strokeWidth: 3,
+            rx: 5,
+            ry: 5
+        });
+        
+        canvas.add(house);
+    };
+    
+    const addTree = () => {
+        if (!canvas) return;
+        
+        const tree = createTree(
+            Math.random() * 600 + 100,
+            Math.random() * 400 + 100
+        );
+        canvas.add(tree);
+    };
+    
+    return (
+        &lt;div className="house-builder"&gt;
+            &lt;canvas ref={canvasRef} /&gt;
+            
+            &lt;div className="controls"&gt;
+                &lt;BuilderButton 
+                    onClick={addHouse}
+                    className="house-btn"
+                    icon="🏠"
+                &gt;
+                    Add House
+                &lt;/BuilderButton&gt;
+                
+                &lt;BuilderButton 
+                    onClick={addTree}
+                    className="tree-btn"  
+                    icon="🌲"
+                &gt;
+                    Add Tree
+                &lt;/BuilderButton&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    );
+};</div>
+                    <div class="explanation-cards">
+                        <div class="explanation-card">
+                            <h4>🔧 React Benefits</h4>
+                            <ul>
+                                <li><strong>Reusable Components:</strong> BuilderButton used everywhere</li>
+                                <li><strong>Props:</strong> Pass data/functions to components</li>
+                                <li><strong>Event Handling:</strong> onClick props vs addEventListener</li>
+                                <li><strong>Conditional Rendering:</strong> {icon && ...} pattern</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <h3>3. React State Management</h3>
+                <div class="code-explanation">
+                    <div class="code-block">
+const HouseBuilder = () => {
+    const [canvas, setCanvas] = useState(null);
+    
+    // Track number of objects for statistics
+    const [objectCount, setObjectCount] = useState({
+        houses: 0,
+        trees: 0,
+        mountains: 0
+    });
+    
+    // Add house with state tracking
+    const addHouse = () => {
+        if (!canvas) return;
+        
+        const house = new fabric.Rect({
+            left: Math.random() * 600 + 100,
+            top: Math.random() * 400 + 100,
+            width: 120,
+            height: 100,
+            fill: '#DEB887',
+            stroke: '#8B4513',
+            strokeWidth: 3
+        });
+        
+        canvas.add(house);
+        
+        // Update state immutably
+        setObjectCount(prev => ({
+            ...prev,                    // Keep existing values
+            houses: prev.houses + 1     // Increment houses
+        }));
+    };
+    
+    // Clear canvas and reset counts
+    const clearCanvas = () => {
+        if (!canvas) return;
+        
+        canvas.clear();
+        canvas.setBackgroundColor(/* gradient */);
+        
+        // Reset all counts
+        setObjectCount({
+            houses: 0,
+            trees: 0,
+            mountains: 0
+        });
+    };
+    
+    return (
+        &lt;div&gt;
+            {/* Display statistics */}
+            &lt;div className="stats"&gt;
+                &lt;p&gt;Houses: {objectCount.houses}&lt;/p&gt;
+                &lt;p&gt;Trees: {objectCount.trees}&lt;/p&gt;
+                &lt;p&gt;Mountains: {objectCount.mountains}&lt;/p&gt;
+            &lt;/div&gt;
+            
+            {/* Canvas and buttons */}
+        &lt;/div&gt;
+    );
+};</div>
+                    <div class="explanation-cards">
+                        <div class="explanation-card">
+                            <h4>📊 State Management</h4>
+                            <ul>
+                                <li><strong>Immutable Updates:</strong> {...prev} creates new object</li>
+                                <li><strong>Reactive UI:</strong> UI updates automatically when state changes</li>
+                                <li><strong>Single Source of Truth:</strong> State lives in one place</li>
+                                <li><strong>Predictable Updates:</strong> State changes trigger re-renders</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="demo-section">
+            <div class="container">
+                <h2>🚀 Complete React Example</h2>
+                <div class="code-explanation">
+                    <div class="code-block">
+import React, { useRef, useEffect, useState } from 'react';
+import { fabric } from 'fabric';
+import './HouseBuilder.css';
+
+const HouseBuilder = () => {
+    const canvasRef = useRef(null);
+    const [canvas, setCanvas] = useState(null);
+    const [stats, setStats] = useState({ houses: 0, trees: 0, birds: 0 });
+    
+    useEffect(() => {
+        const fabricCanvas = new fabric.Canvas(canvasRef.current, {
+            width: 800,
+            height: 600
+        });
+        
+        fabricCanvas.setBackgroundColor({
+            type: 'linear',
+            coords: { x1: 0, y1: 0, x2: 0, y2: 600 },
+            colorStops: [
+                { offset: 0, color: '#87CEEB' },
+                { offset: 1, color: '#90EE90' }
+            ]
+        }, fabricCanvas.renderAll.bind(fabricCanvas));
+        
+        setCanvas(fabricCanvas);
+        
+        return () => fabricCanvas.dispose();
+    }, []);
+    
+    const addHouse = () => {
+        if (!canvas) return;
+        
+        const house = new fabric.Rect({
+            left: Math.random() * 600 + 100,
+            top: Math.random() * 400 + 100,
+            width: 120,
+            height: 100,
+            fill: '#DEB887',
+            stroke: '#8B4513',
+            strokeWidth: 3,
+            rx: 5,
+            ry: 5
+        });
+        
+        canvas.add(house);
+        setStats(prev => ({ ...prev, houses: prev.houses + 1 }));
+    };
+    
+    const addTree = () => {
+        if (!canvas) return;
+        
+        const trunk = new fabric.Rect({
+            left: Math.random() * 600 + 115,
+            top: Math.random() * 400 + 150,
+            width: 12,
+            height: 40,
+            fill: '#8B4513'
+        });
+        
+        const crown = new fabric.Circle({
+            left: Math.random() * 600 + 120,
+            top: Math.random() * 400 + 120,
+            radius: 30,
+            fill: '#228B22',
+            originX: 'center',
+            originY: 'center'
+        });
+        
+        const tree = new fabric.Group([trunk, crown]);
+        canvas.add(tree);
+        setStats(prev => ({ ...prev, trees: prev.trees + 1 }));
+    };
+    
+    const clearAll = () => {
+        if (!canvas) return;
+        canvas.clear();
+        canvas.setBackgroundColor(/* gradient */, canvas.renderAll.bind(canvas));
+        setStats({ houses: 0, trees: 0, birds: 0 });
+    };
+    
+    return (
+        &lt;div className="house-builder"&gt;
+            &lt;h1&gt;🏠 React House Builder&lt;/h1&gt;
+            
+            &lt;div className="stats-panel"&gt;
+                &lt;div&gt;Houses: {stats.houses}&lt;/div&gt;
+                &lt;div&gt;Trees: {stats.trees}&lt;/div&gt;
+                &lt;div&gt;Birds: {stats.birds}&lt;/div&gt;
+            &lt;/div&gt;
+            
+            &lt;div className="builder-grid"&gt;
+                &lt;canvas ref={canvasRef} className="main-canvas" /&gt;
+                
+                &lt;div className="controls"&gt;
+                    &lt;button onClick={addHouse} className="btn house-btn"&gt;
+                        🏠 Add House
+                    &lt;/button&gt;
+                    &lt;button onClick={addTree} className="btn tree-btn"&gt;
+                        🌲 Add Tree  
+                    &lt;/button&gt;
+                    &lt;button onClick={clearAll} className="btn clear-btn"&gt;
+                        🗑️ Clear All
+                    &lt;/button&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    );
+};
+
+export default HouseBuilder;</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="key-concepts">
+            <div class="container">
+                <h2>📈 Vanilla JS vs React: Key Differences</h2>
+                <div class="concepts-grid">
+                    <div class="concept-card">
+                        <h3>🍦 Vanilla JavaScript</h3>
+                        <p><strong>Pros:</strong></p>
+                        <ul>
+                            <li>No build tools or setup required</li>
+                            <li>Smaller file size</li>
+                            <li>Direct browser APIs</li>
+                            <li>Faster initial load</li>
+                        </ul>
+                        <p><strong>Cons:</strong></p>
+                        <ul>
+                            <li>Manual DOM manipulation</li>
+                            <li>No automatic re-rendering</li>
+                            <li>Harder to organize large apps</li>
+                            <li>More repetitive code</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="concept-card">
+                        <h3>⚛️ React</h3>
+                        <p><strong>Pros:</strong></p>
+                        <ul>
+                            <li>Component reusability</li>
+                            <li>Automatic UI updates</li>
+                            <li>Better state management</li>
+                            <li>Rich ecosystem</li>
+                        </ul>
+                        <p><strong>Cons:</strong></p>
+                        <ul>
+                            <li>Learning curve</li>
+                            <li>Build setup required</li>
+                            <li>Larger bundle size</li>
+                            <li>More complex for simple apps</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="concept-card">
+                        <h3>🎯 When to Use Each</h3>
+                        <p><strong>Choose Vanilla JS for:</strong></p>
+                        <ul>
+                            <li>Simple interactive demos</li>
+                            <li>Quick prototypes</li>
+                            <li>Learning fundamentals</li>
+                            <li>Performance-critical apps</li>
+                        </ul>
+                        <p><strong>Choose React for:</strong></p>
+                        <ul>
+                            <li>Complex applications</li>
+                            <li>Team collaboration</li>
+                            <li>Reusable components</li>
+                            <li>Rich user interfaces</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="concept-card">
+                        <h3>🛣️ Migration Path</h3>
+                        <p><strong>Steps to Convert:</strong></p>
+                        <ol>
+                            <li>Set up React project (Create React App)</li>
+                            <li>Convert HTML to JSX components</li>
+                            <li>Replace event listeners with React events</li>
+                            <li>Move state to useState hooks</li>
+                            <li>Organize into reusable components</li>
+                            <li>Add proper cleanup in useEffect</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="getting-started">
+            <div class="container">
+                <h2>🎓 Learning Path Recommendations</h2>
+                <div class="nav-cards">
+                    <div class="nav-card">
+                        <h3>1️⃣ Master the Basics</h3>
+                        <p>Start with vanilla JavaScript to understand how browsers work, then move to frameworks once you're comfortable with the fundamentals.</p>
+                    </div>
+                    <div class="nav-card">
+                        <h3>2️⃣ Understand Canvas</h3>
+                        <p>Learn HTML5 Canvas API basics before using libraries like Fabric.js. Understanding the foundation makes libraries much easier to use.</p>
+                    </div>
+                    <div class="nav-card">
+                        <h3>3️⃣ Practice Component Thinking</h3>
+                        <p>Think in terms of reusable pieces. Even in vanilla JS, organize code into functions that can be reused and combined.</p>
+                    </div>
+                    <div class="nav-card">
+                        <h3>4️⃣ Gradual Framework Adoption</h3>
+                        <p>Once comfortable with vanilla JS, try React or Vue for more complex projects. The concepts you learn transfer between frameworks.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Fabric.js Deep Dive Documentation. Created for educational purposes.</p>
+        </div>
+    </footer>
+
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+</body>
+</html>

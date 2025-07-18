@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codebase Analysis - Fabric.js Deep Dive</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-container">
+                <h1 class="nav-logo">Fabric.js Deep Dive</h1>
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link">Home</a></li>
+                    <li><a href="architecture.html" class="nav-link">Architecture</a></li>
+                    <li><a href="codebase.html" class="nav-link active">Codebase Analysis</a></li>
+                    <li><a href="canvas-drawing.html" class="nav-link">Canvas Drawing</a></li>
+                    <li><a href="object-manipulation.html" class="nav-link">Object Manipulation</a></li>
+                    <li><a href="imports-exports.html" class="nav-link">Imports & Exports</a></li>
+                    <li><a href="demos.html" class="nav-link">Interactive Demos</a></li>
+                    <li><a href="diagram-guide.html" class="nav-link">Understanding Diagrams</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main style="padding-top: 90px;">
+        <section class="overview">
+            <div class="container">
+                <h1>Codebase Analysis: Understanding Fabric.js Structure</h1>
+                <p>Dive deep into the fabric.js codebase structure, file organization, and key components. This analysis will help you understand how the 200+ source files work together to create this powerful canvas library.</p>
+            </div>
+        </section>
+
+        <section class="key-concepts">
+            <div class="container">
+                <h2>File Size Analysis: Core Files by Lines of Code</h2>
+                <p>Understanding which files contain the most code helps identify the core functionality areas:</p>
+                
+                <div class="file-explorer">
+                    <div class="code-title">📊 Largest Core Files (by lines of code)</div>
+                    <div class="file-item">
+                        <strong>Point.ts</strong> <span class="file-size">388 lines</span>
+                        <p>Core geometric calculations, vector math, and 2D point operations. This is fundamental to all positioning and transformation logic.</p>
+                    </div>
+                    <div class="file-item">
+                        <strong>LayoutManager.ts</strong> <span class="file-size">358 lines</span>
+                        <p>Manages object positioning within groups and active selections. Handles complex layout strategies and object relationships.</p>
+                    </div>
+                    <div class="file-item">
+                        <strong>Color.ts</strong> <span class="file-size">349 lines</span>
+                        <p>Color processing, conversion between formats (RGB, HSL, HEX), and color manipulation utilities.</p>
+                    </div>
+                    <div class="file-item">
+                        <strong>Intersection.ts</strong> <span class="file-size">332 lines</span>
+                        <p>Collision detection algorithms, geometric intersection calculations for hit testing and object boundaries.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="architecture-preview">
+            <div class="container">
+                <h2>Directory Structure Overview</h2>
+                <div class="beginner-note">
+                    <h3>🗂️ Understanding Code Organization</h3>
+                    <p>This diagram shows how the Fabric.js code is organized into folders and files:</p>
+                    <ul>
+                        <li><strong>Rectangles = Folders/Modules</strong> (groups of related code)</li>
+                        <li><strong>Lines = Dependencies</strong> (how modules connect to each other)</li>
+                        <li><strong>Colors = Different Types</strong> (canvas, shapes, controls, etc.)</li>
+                    </ul>
+                    <p>Think of it like organizing a library - similar books go on the same shelf!</p>
+                </div>
+                <div class="mermaid">
+                    graph TD
+                        A[src/] --> B[canvas/]
+                        A --> C[shapes/]
+                        A --> D[controls/]
+                        A --> E[filters/]
+                        A --> F[util/]
+                        A --> G[gradient/]
+                        A --> H[brushes/]
+                        
+                        B --> B1[Canvas.ts]
+                        B --> B2[StaticCanvas.ts]
+                        B --> B3[SelectableCanvas.ts]
+                        
+                        C --> C1[Object/]
+                        C --> C2[Text/]
+                        C --> C3[IText/]
+                        C --> C4[Group.ts]
+                        C --> C5[ActiveSelection.ts]
+                        
+                        D --> D1[Control.ts]
+                        D --> D2[rotate.ts]
+                        D --> D3[scale.ts]
+                        
+                        E --> E1[BaseFilter.ts]
+                        E --> E2[WebGLFilterBackend.ts]
+                        
+                        F --> F1[animation/]
+                        F --> F2[misc/]
+                        F --> F3[path/]
+                        
+                        style A fill:#667eea,color:white
+                        style B fill:#764ba2,color:white
+                        style C fill:#f093fb,color:white
+                        style D fill:#4facfe,color:white
+                        style E fill:#43e97b,color:white
+                </div>
+            </div>
+        </section>
+
+        <section class="codebase-stats">
+            <div class="container">
+                <h2>Module Breakdown: Understanding Each Directory</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>📁 /canvas - Canvas Management</h3>
+                        <div class="code-block">
+Canvas.ts - Main canvas class with event handling
+StaticCanvas.ts - Base rendering without interaction
+SelectableCanvas.ts - Adds object selection capabilities
+DOMManagers/ - DOM element lifecycle management
+TextEditingManager.ts - In-place text editing system</div>
+                        <p><strong>Purpose:</strong> Core canvas functionality, event handling, rendering pipeline, and user interaction management.</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h3>🔷 /shapes - Drawable Objects</h3>
+                        <div class="code-block">
+Object/ - Base object classes and properties
+  - FabricObject.ts - Foundation for all drawable items
+  - InteractiveObject.ts - Adds interaction capabilities
+Text/ - Text rendering and manipulation
+IText/ - Interactive text editing
+Circle.ts, Rect.ts, Line.ts - Basic shapes
+Group.ts - Object grouping and composition</div>
+                        <p><strong>Purpose:</strong> All drawable objects inherit from these classes, providing consistent behavior for shapes, text, images, and complex objects.</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h3>🎛️ /controls - Interaction Controls</h3>
+                        <div class="code-block">
+Control.ts - Base control point class
+rotate.ts - Rotation handle logic
+scale.ts - Scaling transformation controls
+drag.ts - Object dragging behavior
+wrapWithFireEvent.ts - Event emission helpers</div>
+                        <p><strong>Purpose:</strong> Interactive control points around objects for transformation (resize, rotate, etc.), drag handles, and user interaction feedback.</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h3>🎨 /filters - Image Processing</h3>
+                        <div class="code-block">
+BaseFilter.ts - Foundation for all filters
+WebGLFilterBackend.ts - GPU-accelerated filtering
+Canvas2dFilterBackend.ts - CPU-based filtering
+ColorMatrix.ts - Color transformation filters
+Blur.ts, Brightness.ts - Individual filter effects</div>
+                        <p><strong>Purpose:</strong> Image and object filtering system supporting both WebGL and Canvas 2D rendering backends for visual effects.</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h3>🔧 /util - Utility Functions</h3>
+                        <div class="code-block">
+animation/ - Animation framework and easing
+misc/ - Mathematical utilities and helpers
+  - matrix.ts - Transformation matrix operations
+  - vectors.ts - Vector mathematics
+  - boundingBoxFromPoints.ts - Geometry calculations
+path/ - SVG path parsing and manipulation</div>
+                        <p><strong>Purpose:</strong> Mathematical utilities, animation framework, geometry calculations, and helper functions used throughout the library.</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h3>🎨 /gradient & /color - Color System</h3>
+                        <div class="code-block">
+Color.ts - Color manipulation and conversion
+Gradient.ts - Linear and radial gradients
+color_map.ts - Named color definitions
+parser/ - Color string parsing utilities</div>
+                        <p><strong>Purpose:</strong> Comprehensive color management system supporting multiple color formats, gradients, and color transformations.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="key-concepts">
+            <div class="container">
+                <h2>Key Architectural Patterns</h2>
+                <div class="concepts-grid">
+                    <div class="concept-card">
+                        <h3>Inheritance Hierarchy</h3>
+                        <p>All objects extend from <code>FabricObject</code> → <code>InteractiveObject</code>, providing consistent properties and methods. Shapes like <code>Rect</code> and <code>Circle</code> inherit this foundation.</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>Mixin Pattern</h3>
+                        <p>Functionality is added through mixins (e.g., <code>FabricObjectSVGExportMixin</code>) rather than deep inheritance, allowing flexible feature composition.</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>Event-Driven Architecture</h3>
+                        <p>Observable pattern implementation allows objects to emit events and other components to listen, creating loose coupling between components.</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>Strategy Pattern</h3>
+                        <p>Layout strategies, filter backends, and animation implementations use strategy pattern for swappable algorithms and rendering backends.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="codebase-stats">
+            <div class="container">
+                <h2>Build System & Output Analysis</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>📦 Build Outputs</h3>
+                        <div class="code-block">
+dist/
+├── index.min.js      # UMD bundle for browsers
+├── index.min.mjs     # ES module bundle
+├── index.node.cjs    # CommonJS for Node.js
+├── index.d.ts        # TypeScript definitions
+└── fabric.min.mjs    # ES module (tree-shakeable)</div>
+                        <p>Multiple build targets ensure compatibility across different environments while supporting modern ES modules and tree-shaking.</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h3>🔧 Development Tools</h3>
+                        <div class="code-block">
+scripts/
+├── build.mjs         # Build system orchestration
+├── buildStats.mjs    # Bundle size analysis
+└── sandbox.mjs       # Development server
+
+playwright.config.ts   # E2E testing configuration
+vitest.config.ts       # Unit testing setup
+rollup.config.mjs      # Module bundling</div>
+                        <p>Comprehensive development tooling with testing, building, and development server capabilities.</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h3>🧪 Testing Structure</h3>
+                        <div class="code-block">
+test/
+├── fixtures/         # Test assets and images
+└── visual/          # Visual regression tests
+
+e2e/
+├── tests/           # End-to-end test scenarios
+├── setup/           # Test environment setup
+└── utils/           # Testing utilities
+
+*.spec.ts files       # Unit tests alongside source</div>
+                        <p>Multi-layered testing approach with unit tests, visual regression tests, and end-to-end testing for comprehensive coverage.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="getting-started">
+            <div class="container">
+                <h2>Understanding File Dependencies</h2>
+                <div class="mermaid">
+                    graph LR
+                        A[Point.ts] --> B[ObjectGeometry.ts]
+                        B --> C[FabricObject.ts]
+                        C --> D[InteractiveObject.ts]
+                        D --> E[Shape Objects]
+                        
+                        F[Color.ts] --> G[Gradient.ts]
+                        G --> H[Pattern.ts]
+                        
+                        I[Intersection.ts] --> J[Control.ts]
+                        J --> K[Canvas.ts]
+                        
+                        L[LayoutManager.ts] --> M[Group.ts]
+                        M --> N[ActiveSelection.ts]
+                        
+                        style A fill:#ff6b6b
+                        style F fill:#4ecdc4
+                        style I fill:#45b7d1
+                        style L fill:#96ceb4
+                </div>
+                <p>Understanding these dependencies helps you navigate the codebase more effectively. Core utility classes like <code>Point</code> and <code>Color</code> are used throughout the entire system.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Fabric.js Deep Dive Documentation. Created for educational purposes.</p>
+        </div>
+    </footer>
+
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+</body>
+</html>

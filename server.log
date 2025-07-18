@@ -1,0 +1,15 @@
+🚀 Fabric.js Deep Dive website running at:
+   http://localhost:3003
+   http://127.0.0.1:3003
+
+📄 Available pages:
+   / or /index.html - Main page
+   /architecture.html - Architecture overview
+   /codebase.html - Codebase analysis
+   /canvas-drawing.html - Canvas drawing
+   /object-manipulation.html - Object manipulation
+   /imports-exports.html - Imports & exports
+   /demos.html - Interactive demos
+   /diagram-guide.html - Understanding diagrams
+
+🛑 Press Ctrl+C to stop the server

@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Demos - Fabric.js Deep Dive</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-container">
+                <h1 class="nav-logo">Fabric.js Deep Dive</h1>
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link">Home</a></li>
+                    <li><a href="architecture.html" class="nav-link">Architecture</a></li>
+                    <li><a href="codebase.html" class="nav-link">Codebase Analysis</a></li>
+                    <li><a href="canvas-drawing.html" class="nav-link">Canvas Drawing</a></li>
+                    <li><a href="object-manipulation.html" class="nav-link">Object Manipulation</a></li>
+                    <li><a href="imports-exports.html" class="nav-link">Imports & Exports</a></li>
+                    <li><a href="demos.html" class="nav-link active">Interactive Demos</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main style="padding-top: 90px;">
+        <section class="overview">
+            <div class="container">
+                <h1>Interactive Demos: Try Fabric.js Yourself!</h1>
+                <p>Hands-on examples showing how to use Fabric.js for common canvas operations. Perfect for beginners to understand how the code translates into visual results.</p>
+                
+                <div class="beginner-note">
+                    <h3>🎓 New to Programming?</h3>
+                    <p><strong>Don't worry!</strong> These demos show you exactly how a few lines of JavaScript code can create interactive graphics. Each demo includes:</p>
+                    <ul>
+                        <li><strong>Live Canvas</strong> - See the results immediately</li>
+                        <li><strong>Code Examples</strong> - The exact JavaScript that makes it work</li>
+                        <li><strong>Step-by-Step</strong> - What each line of code does</li>
+                        <li><strong>Try It</strong> - Buttons to experiment with different options</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Demo 1: Adding Text -->
+        <section class="demo-section">
+            <div class="container">
+                <h2>Demo 1: Adding Text to Canvas</h2>
+                <div class="demo-grid">
+                    <div class="demo-canvas-container">
+                        <canvas id="textCanvas" width="400" height="300"></canvas>
+                        <div class="demo-controls">
+                            <button id="addTextBtn" class="demo-btn">Add Text</button>
+                            <button id="addEditableTextBtn" class="demo-btn">Add Editable Text</button>
+                            <button id="clearTextBtn" class="demo-btn secondary">Clear Canvas</button>
+                        </div>
+                    </div>
+                    <div class="demo-explanation">
+                        <h3>How It Works</h3>
+                        <div class="code-explanation">
+                            <div class="code-block">
+<span class="comment">// 1. Create a canvas (like a digital drawing board)</span>
+<span class="keyword">const</span> canvas = <span class="keyword">new</span> <span class="function">fabric.Canvas</span>(<span class="string">'textCanvas'</span>);
+
+<span class="comment">// 2. Create a text object (like typing on the canvas)</span>
+<span class="keyword">const</span> text = <span class="keyword">new</span> <span class="function">fabric.Text</span>(<span class="string">'Hello Fabric.js!'</span>, {
+    <span class="property">left</span>: <span class="number">50</span>,     <span class="comment">// Position from left edge</span>
+    <span class="property">top</span>: <span class="number">100</span>,     <span class="comment">// Position from top edge</span>
+    <span class="property">fontSize</span>: <span class="number">20</span>, <span class="comment">// Size of the text</span>
+    <span class="property">fill</span>: <span class="string">'blue'</span>   <span class="comment">// Color of the text</span>
+});
+
+<span class="comment">// 3. Add the text to the canvas (make it visible)</span>
+canvas.<span class="function">add</span>(text);</div>
+                        </div>
+                        <div class="explanation-cards">
+                            <div class="explanation-card">
+                                <h4>🎯 What's Happening?</h4>
+                                <p>Think of this like placing a sticker on a bulletin board. The canvas is your board, and the text is your sticker that you can move around, resize, or edit.</p>
+                            </div>
+                            <div class="explanation-card">
+                                <h4>📐 Coordinates</h4>
+                                <p><code>left: 50, top: 100</code> means "place this 50 pixels from the left edge and 100 pixels from the top." It's like giving someone directions!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Demo 2: Adding Yellow Box -->
+        <section class="demo-section">
+            <div class="container">
+                <h2>Demo 2: Adding a Yellow Rectangle</h2>
+                <div class="demo-grid">
+                    <div class="demo-canvas-container">
+                        <canvas id="rectCanvas" width="400" height="300"></canvas>
+                        <div class="demo-controls">
+                            <button id="addYellowBoxBtn" class="demo-btn">Add Yellow Box</button>
+                            <button id="addRandomBoxBtn" class="demo-btn">Add Random Color Box</button>
+                            <button id="clearRectBtn" class="demo-btn secondary">Clear Canvas</button>
+                        </div>
+                    </div>
+                    <div class="demo-explanation">
+                        <h3>How It Works</h3>
+                        <div class="code-explanation">
+                            <div class="code-block">
+<span class="comment">// 1. Create a rectangle object (like drawing a box)</span>
+<span class="keyword">const</span> rect = <span class="keyword">new</span> <span class="function">fabric.Rect</span>({
+    <span class="property">left</span>: <span class="number">100</span>,        <span class="comment">// X position (horizontal)</span>
+    <span class="property">top</span>: <span class="number">50</span>,         <span class="comment">// Y position (vertical)</span>
+    <span class="property">width</span>: <span class="number">120</span>,      <span class="comment">// How wide the box is</span>
+    <span class="property">height</span>: <span class="number">80</span>,      <span class="comment">// How tall the box is</span>
+    <span class="property">fill</span>: <span class="string">'yellow'</span>,   <span class="comment">// Fill color (inside the box)</span>
+    <span class="property">stroke</span>: <span class="string">'orange'</span>, <span class="comment">// Border color</span>
+    <span class="property">strokeWidth</span>: <span class="number">3</span>   <span class="comment">// How thick the border is</span>
+});
+
+<span class="comment">// 2. Add the rectangle to the canvas</span>
+canvas.<span class="function">add</span>(rect);</div>
+                        </div>
+                        <div class="explanation-cards">
+                            <div class="explanation-card">
+                                <h4>🎨 Fill vs Stroke</h4>
+                                <p><strong>Fill</strong> is like paint bucket - fills the inside. <strong>Stroke</strong> is like a pen - draws the outline. You can have one, both, or neither!</p>
+                            </div>
+                            <div class="explanation-card">
+                                <h4>📏 Size & Position</h4>
+                                <p>Width and height are in pixels (tiny dots on your screen). Position (left, top) is measured from the top-left corner of the canvas.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Demo 3: Canvas Background -->
+        <section class="demo-section">
+            <div class="container">
+                <h2>Demo 3: Changing Canvas Background</h2>
+                <div class="demo-grid">
+                    <div class="demo-canvas-container">
+                        <canvas id="backgroundCanvas" width="400" height="300"></canvas>
+                        <div class="demo-controls">
+                            <button id="yellowBgBtn" class="demo-btn">Yellow Background</button>
+                            <button id="blueBgBtn" class="demo-btn">Blue Background</button>
+                            <button id="gradientBgBtn" class="demo-btn">Gradient Background</button>
+                            <button id="whiteBgBtn" class="demo-btn secondary">White Background</button>
+                        </div>
+                    </div>
+                    <div class="demo-explanation">
+                        <h3>How It Works</h3>
+                        <div class="code-explanation">
+                            <div class="code-block">
+<span class="comment">// 1. Simple solid color background</span>
+canvas.<span class="function">setBackgroundColor</span>(<span class="string">'yellow'</span>, canvas.<span class="function">renderAll</span>.<span class="function">bind</span>(canvas));
+
+<span class="comment">// 2. Or create a gradient background (fancy!)</span>
+<span class="keyword">const</span> gradient = <span class="keyword">new</span> <span class="function">fabric.Gradient</span>({
+    <span class="property">type</span>: <span class="string">'linear'</span>,
+    <span class="property">coords</span>: { <span class="property">x1</span>: <span class="number">0</span>, <span class="property">y1</span>: <span class="number">0</span>, <span class="property">x2</span>: <span class="number">400</span>, <span class="property">y2</span>: <span class="number">300</span> },
+    <span class="property">colorStops</span>: [
+        { <span class="property">offset</span>: <span class="number">0</span>, <span class="property">color</span>: <span class="string">'#ffeb3b'</span> },    <span class="comment">// Start: bright yellow</span>
+        { <span class="property">offset</span>: <span class="number">1</span>, <span class="property">color</span>: <span class="string">'#ff9800'</span> }     <span class="comment">// End: orange</span>
+    ]
+});
+
+canvas.<span class="function">setBackgroundColor</span>(gradient, canvas.<span class="function">renderAll</span>.<span class="function">bind</span>(canvas));</div>
+                        </div>
+                        <div class="explanation-cards">
+                            <div class="explanation-card">
+                                <h4>🎨 renderAll() Function</h4>
+                                <p>Think of this like hitting "refresh" on your browser. It tells the canvas to redraw everything so you can see the changes you made.</p>
+                            </div>
+                            <div class="explanation-card">
+                                <h4>🌈 Gradients Explained</h4>
+                                <p>A gradient smoothly blends from one color to another. <code>coords</code> tells it where to start and end the blend. <code>colorStops</code> are the colors to blend between.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Combined Demo -->
+        <section class="demo-section">
+            <div class="container">
+                <h2>Demo 4: Putting It All Together</h2>
+                <div class="demo-grid">
+                    <div class="demo-canvas-container">
+                        <canvas id="combinedCanvas" width="400" height="300"></canvas>
+                        <div class="demo-controls">
+                            <button id="createSceneBtn" class="demo-btn primary">Create Complete Scene</button>
+                            <button id="animateBtn" class="demo-btn">Animate Objects</button>
+                            <button id="clearCombinedBtn" class="demo-btn secondary">Clear Everything</button>
+                        </div>
+                    </div>
+                    <div class="demo-explanation">
+                        <h3>Real-World Example</h3>
+                        <div class="code-explanation">
+                            <div class="code-block">
+<span class="comment">// This is how you'd build a complete interactive scene</span>
+
+<span class="comment">// 1. Set up the canvas with a nice background</span>
+canvas.<span class="function">setBackgroundColor</span>(<span class="string">'#e3f2fd'</span>, canvas.<span class="function">renderAll</span>.<span class="function">bind</span>(canvas));
+
+<span class="comment">// 2. Add a title</span>
+<span class="keyword">const</span> title = <span class="keyword">new</span> <span class="function">fabric.Text</span>(<span class="string">'My Canvas App'</span>, {
+    <span class="property">left</span>: <span class="number">200</span>, <span class="property">top</span>: <span class="number">30</span>, <span class="property">fontSize</span>: <span class="number">24</span>,
+    <span class="property">fontFamily</span>: <span class="string">'Arial'</span>, <span class="property">fill</span>: <span class="string">'#1976d2'</span>
+});
+
+<span class="comment">// 3. Add some colorful boxes</span>
+<span class="keyword">const</span> box1 = <span class="keyword">new</span> <span class="function">fabric.Rect</span>({
+    <span class="property">left</span>: <span class="number">50</span>, <span class="property">top</span>: <span class="number">100</span>, <span class="property">width</span>: <span class="number">80</span>, <span class="property">height</span>: <span class="number">80</span>,
+    <span class="property">fill</span>: <span class="string">'#ffeb3b'</span>, <span class="property">rx</span>: <span class="number">10</span>, <span class="property">ry</span>: <span class="number">10</span>  <span class="comment">// rx, ry make rounded corners</span>
+});
+
+<span class="comment">// 4. Add everything to the canvas</span>
+canvas.<span class="function">add</span>(title, box1, box2, circle);</div>
+                        </div>
+                        <div class="explanation-cards">
+                            <div class="explanation-card">
+                                <h4>🏗️ Building Scenes</h4>
+                                <p>Real applications combine multiple elements. You add them in order - first things added appear behind later things, like layers in a drawing.</p>
+                            </div>
+                            <div class="explanation-card">
+                                <h4>⚡ Animation</h4>
+                                <p>Fabric.js can smoothly move objects over time. It's like making a flipbook - the library handles all the in-between frames!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Programming Concepts for Beginners -->
+        <section class="key-concepts">
+            <div class="container">
+                <h2>Understanding the Programming Concepts</h2>
+                <div class="concepts-grid">
+                    <div class="concept-card">
+                        <h3>🏗️ Objects & Classes</h3>
+                        <p><strong>Think of it like cookie cutters:</strong></p>
+                        <ul>
+                            <li><strong>Class</strong> = The cookie cutter shape (like <code>fabric.Rect</code>)</li>
+                            <li><strong>Object</strong> = The actual cookie you make (like <code>new fabric.Rect()</code>)</li>
+                            <li>You can make many cookies from one cutter, each with different decorations (properties)</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="concept-card">
+                        <h3>🎛️ Properties & Methods</h3>
+                        <p><strong>Like features on a TV remote:</strong></p>
+                        <ul>
+                            <li><strong>Properties</strong> = Settings you can change (volume level, channel)</li>
+                            <li><strong>Methods</strong> = Buttons you can press (turn on, change channel)</li>
+                            <li><code>rect.fill = 'yellow'</code> changes a setting</li>
+                            <li><code>canvas.add(rect)</code> presses a button</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="concept-card">
+                        <h3>📚 APIs (Application Programming Interfaces)</h3>
+                        <p><strong>Like a restaurant menu:</strong></p>
+                        <ul>
+                            <li>The menu shows what you can order (available functions)</li>
+                            <li>You don't need to know how to cook it (internal implementation)</li>
+                            <li>You just say "I want a burger" (call the function)</li>
+                            <li>Fabric.js API lets you say "I want a rectangle" without knowing how pixels work</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="concept-card">
+                        <h3>🎪 Event-Driven Programming</h3>
+                        <p><strong>Like a doorbell system:</strong></p>
+                        <ul>
+                            <li>You set up listeners (install the doorbell)</li>
+                            <li>Events happen (someone presses the button)</li>
+                            <li>Your code responds (you answer the door)</li>
+                            <li>Mouse clicks, key presses, object movements are all "doorbell rings"</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Fabric.js Deep Dive Documentation. Created for educational purposes.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Wait for page to load completely
+        window.addEventListener('load', function() {
+            // Demo 1: Text Canvas
+            const textCanvas = new fabric.Canvas('textCanvas');
+        
+            document.getElementById('addTextBtn').addEventListener('click', () => {
+            const text = new fabric.Text('Hello Fabric.js!', {
+                left: Math.random() * 300 + 50,
+                top: Math.random() * 200 + 50,
+                fontSize: 20,
+                fill: '#' + Math.floor(Math.random()*16777215).toString(16)
+            });
+            textCanvas.add(text);
+        });
+        
+        document.getElementById('addEditableTextBtn').addEventListener('click', () => {
+            const text = new fabric.IText('Click to edit me!', {
+                left: Math.random() * 250 + 50,
+                top: Math.random() * 200 + 50,
+                fontSize: 18,
+                fill: 'blue'
+            });
+            textCanvas.add(text);
+        });
+        
+        document.getElementById('clearTextBtn').addEventListener('click', () => {
+            textCanvas.clear();
+        });
+
+        // Demo 2: Rectangle Canvas
+        const rectCanvas = new fabric.Canvas('rectCanvas');
+        
+        document.getElementById('addYellowBoxBtn').addEventListener('click', () => {
+            const rect = new fabric.Rect({
+                left: Math.random() * 280 + 20,
+                top: Math.random() * 200 + 20,
+                width: 80,
+                height: 60,
+                fill: 'yellow',
+                stroke: 'orange',
+                strokeWidth: 3,
+                rx: 10,
+                ry: 10
+            });
+            rectCanvas.add(rect);
+        });
+        
+        document.getElementById('addRandomBoxBtn').addEventListener('click', () => {
+            const colors = ['red', 'blue', 'green', 'purple', 'pink', 'cyan'];
+            const rect = new fabric.Rect({
+                left: Math.random() * 280 + 20,
+                top: Math.random() * 200 + 20,
+                width: Math.random() * 60 + 40,
+                height: Math.random() * 60 + 40,
+                fill: colors[Math.floor(Math.random() * colors.length)],
+                angle: Math.random() * 45
+            });
+            rectCanvas.add(rect);
+        });
+        
+        document.getElementById('clearRectBtn').addEventListener('click', () => {
+            rectCanvas.clear();
+        });
+
+        // Demo 3: Background Canvas
+        const backgroundCanvas = new fabric.Canvas('backgroundCanvas');
+        
+        // Add some objects to make background changes visible
+        const bgText = new fabric.Text('Watch the background change!', {
+            left: 200,
+            top: 150,
+            fontSize: 16,
+            fill: 'white',
+            textAlign: 'center',
+            originX: 'center',
+            originY: 'center'
+        });
+        backgroundCanvas.add(bgText);
+        
+        document.getElementById('yellowBgBtn').addEventListener('click', () => {
+            backgroundCanvas.setBackgroundColor('yellow', backgroundCanvas.renderAll.bind(backgroundCanvas));
+            bgText.set('fill', 'black');
+            backgroundCanvas.renderAll();
+        });
+        
+        document.getElementById('blueBgBtn').addEventListener('click', () => {
+            backgroundCanvas.setBackgroundColor('#2196f3', backgroundCanvas.renderAll.bind(backgroundCanvas));
+            bgText.set('fill', 'white');
+            backgroundCanvas.renderAll();
+        });
+        
+        document.getElementById('gradientBgBtn').addEventListener('click', () => {
+            const gradient = new fabric.Gradient({
+                type: 'linear',
+                coords: { x1: 0, y1: 0, x2: 400, y2: 300 },
+                colorStops: [
+                    { offset: 0, color: '#ffeb3b' },
+                    { offset: 1, color: '#ff9800' }
+                ]
+            });
+            backgroundCanvas.setBackgroundColor(gradient, backgroundCanvas.renderAll.bind(backgroundCanvas));
+            bgText.set('fill', 'white');
+            backgroundCanvas.renderAll();
+        });
+        
+        document.getElementById('whiteBgBtn').addEventListener('click', () => {
+            backgroundCanvas.setBackgroundColor('white', backgroundCanvas.renderAll.bind(backgroundCanvas));
+            bgText.set('fill', 'black');
+            backgroundCanvas.renderAll();
+        });
+
+        // Demo 4: Combined Canvas
+        const combinedCanvas = new fabric.Canvas('combinedCanvas');
+        
+        document.getElementById('createSceneBtn').addEventListener('click', () => {
+            combinedCanvas.clear();
+            
+            // Background
+            combinedCanvas.setBackgroundColor('#e3f2fd', combinedCanvas.renderAll.bind(combinedCanvas));
+            
+            // Title
+            const title = new fabric.Text('My Canvas App', {
+                left: 200,
+                top: 30,
+                fontSize: 24,
+                fontFamily: 'Arial',
+                fill: '#1976d2',
+                originX: 'center'
+            });
+            
+            // Yellow box
+            const yellowBox = new fabric.Rect({
+                left: 50,
+                top: 100,
+                width: 80,
+                height: 80,
+                fill: '#ffeb3b',
+                rx: 10,
+                ry: 10
+            });
+            
+            // Blue circle
+            const blueCircle = new fabric.Circle({
+                left: 200,
+                top: 120,
+                radius: 40,
+                fill: '#2196f3'
+            });
+            
+            // Green triangle
+            const greenTriangle = new fabric.Triangle({
+                left: 320,
+                top: 130,
+                width: 60,
+                height: 60,
+                fill: '#4caf50'
+            });
+            
+            combinedCanvas.add(title, yellowBox, blueCircle, greenTriangle);
+        });
+        
+        document.getElementById('animateBtn').addEventListener('click', () => {
+            combinedCanvas.getObjects().forEach((obj, index) => {
+                if (obj.type !== 'text') {
+                    obj.animate('angle', obj.angle + 360, {
+                        duration: 2000,
+                        easing: fabric.util.ease.easeOutBounce
+                    });
+                }
+            });
+        });
+        
+        document.getElementById('clearCombinedBtn').addEventListener('click', () => {
+            combinedCanvas.clear();
+            combinedCanvas.setBackgroundColor('white', combinedCanvas.renderAll.bind(combinedCanvas));
+        });
+        
+        }); // End of window load event listener
+    </script>
+</body>
+</html>

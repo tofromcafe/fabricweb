@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fabric.js Deep Dive - Canvas Object Model Explained</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-container">
+                <h1 class="nav-logo">Fabric.js Deep Dive</h1>
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link active">Home</a></li>
+                    <li><a href="architecture.html" class="nav-link">Architecture</a></li>
+                    <li><a href="codebase.html" class="nav-link">Codebase Analysis</a></li>
+                    <li><a href="canvas-drawing.html" class="nav-link">Canvas Drawing</a></li>
+                    <li><a href="object-manipulation.html" class="nav-link">Object Manipulation</a></li>
+                    <li><a href="imports-exports.html" class="nav-link">Imports & Exports</a></li>
+                    <li><a href="demos.html" class="nav-link">Interactive Demos</a></li>
+                    <li><a href="diagram-guide.html" class="nav-link">Understanding Diagrams</a></li>
+                    <li><a href="house-builder.html" class="nav-link">House Builder</a></li>
+                    <li><a href="house-demo-explained.html" class="nav-link">Demo Explained</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="hero-content">
+                <h1>Understanding Fabric.js</h1>
+                <p class="hero-subtitle">A powerful HTML5 Canvas library that makes interactive canvas applications a breeze</p>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <span class="stat-number">6.6.2</span>
+                        <span class="stat-label">Current Version</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">200+</span>
+                        <span class="stat-label">Source Files</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">TypeScript</span>
+                        <span class="stat-label">Primary Language</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="overview">
+            <div class="container">
+                <h2>What is Fabric.js?</h2>
+                <p>Fabric.js is an object model for HTML5 canvas that enables interactive object manipulation on the canvas. It provides a comprehensive suite of tools for:</p>
+                
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <h3>🎨 Canvas Drawing</h3>
+                        <p>Create and manipulate shapes, text, images, and complex paths with intuitive APIs</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>🔄 Object Interaction</h3>
+                        <p>Built-in support for object selection, transformation, rotation, and scaling</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>📐 SVG Support</h3>
+                        <p>Import SVG files and convert them to interactive canvas objects</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>🎛️ Event System</h3>
+                        <p>Rich event handling for mouse, touch, and keyboard interactions</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="architecture-preview">
+            <div class="container">
+                <h2>Core Architecture Overview</h2>
+                <div class="mermaid">
+                    graph TD
+                        A[Static Canvas] --> B[Selectable Canvas]
+                        B --> C[Canvas]
+                        D[FabricObject] --> E[Interactive Object]
+                        E --> F[Shape Objects]
+                        F --> G[Rect]
+                        F --> H[Circle]
+                        F --> I[Text]
+                        F --> J[Image]
+                        C --> K[Event System]
+                        C --> L[Rendering Engine]
+                        M[Layout Manager] --> N[Active Selection]
+                        M --> O[Group Layout]
+                        P[Filters] --> Q[Image Filters]
+                        P --> R[Color Filters]
+                </div>
+                <p>Fabric.js follows a hierarchical object model where everything inherits from base classes, providing consistent behavior across all canvas objects.</p>
+            </div>
+        </section>
+
+        <section class="key-concepts">
+            <div class="container">
+                <h2>Key Concepts for Beginners</h2>
+                <div class="beginner-note">
+                    <h3>🎓 New to Programming?</h3>
+                    <p>Don't worry! Here are some key terms you'll see throughout this documentation:</p>
+                    <div class="glossary-grid">
+                        <div class="glossary-item">
+                            <strong>API:</strong> Application Programming Interface - like a menu at a restaurant that shows what you can order (what functions you can use)
+                        </div>
+                        <div class="glossary-item">
+                            <strong>Object:</strong> A bundle of data and functions that work together - like a digital "thing" with properties and abilities
+                        </div>
+                        <div class="glossary-item">
+                            <strong>Method:</strong> A function that belongs to an object - something the object can "do" (like a dog can bark)
+                        </div>
+                        <div class="glossary-item">
+                            <strong>Property:</strong> A piece of information about an object - something the object "has" (like a dog has a color)
+                        </div>
+                        <div class="glossary-item">
+                            <strong>Event:</strong> Something that happens that your code can respond to (like a mouse click or key press)
+                        </div>
+                        <div class="glossary-item">
+                            <strong>Canvas:</strong> A digital drawing surface where you can place and manipulate visual objects
+                        </div>
+                    </div>
+                </div>
+                <div class="concepts-grid">
+                    <div class="concept-card">
+                        <h3>Canvas Hierarchy</h3>
+                        <p>Everything starts with a Canvas instance that manages objects and handles rendering. Objects are organized in layers and can be grouped for collective manipulation.</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>Object Model</h3>
+                        <p>All drawable items inherit from FabricObject, providing common properties like position, size, rotation, and styling options.</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>Event-Driven</h3>
+                        <p>User interactions trigger events that can be captured and handled, enabling rich interactive experiences.</p>
+                    </div>
+                    <div class="concept-card">
+                        <h3>Transformation Matrix</h3>
+                        <p>Mathematical transformations handle object positioning, scaling, rotation, and skewing in an efficient way.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="codebase-stats">
+            <div class="container">
+                <h2>Codebase at a Glance</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Core Files</h3>
+                        <ul>
+                            <li><strong>Point.ts</strong> - 388 lines - Geometric calculations</li>
+                            <li><strong>LayoutManager.ts</strong> - 358 lines - Object positioning</li>
+                            <li><strong>Color.ts</strong> - 349 lines - Color management</li>
+                            <li><strong>Intersection.ts</strong> - 332 lines - Collision detection</li>
+                        </ul>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Main Modules</h3>
+                        <ul>
+                            <li><strong>Canvas</strong> - Main rendering engine</li>
+                            <li><strong>Shapes</strong> - Object implementations</li>
+                            <li><strong>Controls</strong> - Interaction handlers</li>
+                            <li><strong>Filters</strong> - Image processing</li>
+                        </ul>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Build Outputs</h3>
+                        <ul>
+                            <li><strong>ES Modules</strong> - Modern import/export</li>
+                            <li><strong>CommonJS</strong> - Node.js compatibility</li>
+                            <li><strong>Browser Bundle</strong> - All-in-one package</li>
+                            <li><strong>Extensions</strong> - Optional features</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="getting-started">
+            <div class="container">
+                <h2>Explore the Documentation</h2>
+                <p>Navigate through different sections to understand how Fabric.js works under the hood:</p>
+                <div class="nav-cards">
+                    <a href="architecture.html" class="nav-card">
+                        <h3>🏗️ Architecture</h3>
+                        <p>Dive into the class hierarchy and component relationships</p>
+                    </a>
+                    <a href="codebase.html" class="nav-card">
+                        <h3>📁 Codebase Analysis</h3>
+                        <p>Explore files by size and understand their purpose</p>
+                    </a>
+                    <a href="canvas-drawing.html" class="nav-card">
+                        <h3>🎨 Canvas Drawing</h3>
+                        <p>Learn how objects are rendered and manipulated</p>
+                    </a>
+                    <a href="object-manipulation.html" class="nav-card">
+                        <h3>🔧 Object Manipulation</h3>
+                        <p>Understand selection, transformation, and interaction</p>
+                    </a>
+                    <a href="demos.html" class="nav-card">
+                        <h3>🎮 Interactive Demos</h3>
+                        <p>Try live examples and see code in action</p>
+                    </a>
+                    <a href="diagram-guide.html" class="nav-card">
+                        <h3>📊 Understanding Diagrams</h3>
+                        <p>Learn to read UML and technical diagrams like a pro</p>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Fabric.js Deep Dive Documentation. Created for educational purposes.</p>
+        </div>
+    </footer>
+
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+</body>
+</html>

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Architecture Overview - Fabric.js Deep Dive</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-container">
+                <h1 class="nav-logo">Fabric.js Deep Dive</h1>
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link">Home</a></li>
+                    <li><a href="architecture.html" class="nav-link active">Architecture</a></li>
+                    <li><a href="codebase.html" class="nav-link">Codebase Analysis</a></li>
+                    <li><a href="canvas-drawing.html" class="nav-link">Canvas Drawing</a></li>
+                    <li><a href="object-manipulation.html" class="nav-link">Object Manipulation</a></li>
+                    <li><a href="imports-exports.html" class="nav-link">Imports & Exports</a></li>
+                    <li><a href="demos.html" class="nav-link">Interactive Demos</a></li>
+                    <li><a href="diagram-guide.html" class="nav-link">Understanding Diagrams</a></li>
+                    <li><a href="house-builder.html" class="nav-link">House Builder</a></li>
+                    <li><a href="house-demo-explained.html" class="nav-link">Demo Explained</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main style="padding-top: 90px;">
+        <section class="overview">
+            <div class="container">
+                <h1>Fabric.js Architecture: How It All Fits Together</h1>
+                <p>Understanding the architectural design patterns and class relationships that make Fabric.js a powerful and extensible canvas library.</p>
+            </div>
+        </section>
+
+        <section class="architecture-preview">
+            <div class="container">
+                <h2>Core Class Hierarchy</h2>
+                <div class="beginner-note">
+                    <h3>🔍 New to Class Diagrams?</h3>
+                    <p>This diagram shows how Fabric.js objects are organized. Think of it like a family tree:</p>
+                    <ul>
+                        <li><strong>Boxes = Classes</strong> (templates for creating objects)</li>
+                        <li><strong>Arrows = Inheritance</strong> ("is a type of" relationship)</li>
+                        <li><strong>Methods</strong> are things objects can do (like <code>render()</code>)</li>
+                        <li><strong>Properties</strong> are things objects have (like <code>left</code>, <code>top</code>)</li>
+                    </ul>
+                    <p><a href="diagram-guide.html">📚 Learn more about reading diagrams</a></p>
+                </div>
+                <div class="mermaid">
+                    classDiagram
+                        class Observable {
+                            +on(eventName, handler)
+                            +off(eventName, handler)
+                            +fire(eventName, options)
+                        }
+                        
+                        class CommonMethods {
+                            +set(key, value)
+                            +get(key)
+                            +toObject()
+                            +clone()
+                        }
+                        
+                        class InteractiveFabricObject {
+                            +selectable: boolean
+                            +moveCursor: string
+                            +controls: TControlSet
+                            +drawControls(ctx)
+                            +isControlVisible(key)
+                        }
+                        
+                        class FabricObject {
+                            +left: number
+                            +top: number
+                            +width: number
+                            +height: number
+                            +angle: number
+                            +scaleX: number
+                            +scaleY: number
+                            +render(ctx)
+                            +animate(property, value)
+                        }
+                        
+                        class Rect {
+                            +rx: number
+                            +ry: number
+                            +render(ctx)
+                        }
+                        
+                        class Circle {
+                            +radius: number
+                            +render(ctx)
+                        }
+                        
+                        class Text {
+                            +text: string
+                            +fontSize: number
+                            +fontFamily: string
+                            +render(ctx)
+                        }
+                        
+                        class IText {
+                            +enterEditing()
+                            +exitEditing()
+                            +insertChars(text)
+                        }
+                        
+                        class Group {
+                            +objects: FabricObject[]
+                            +addWithUpdate(object)
+                            +removeWithUpdate(object)
+                        }
+                        
+                        Observable <|-- CommonMethods
+                        CommonMethods <|-- InteractiveFabricObject
+                        InteractiveFabricObject <|-- FabricObject
+                        FabricObject <|-- Rect
+                        FabricObject <|-- Circle
+                        FabricObject <|-- Text
+                        Text <|-- IText
+                        FabricObject <|-- Group
+                </div>
+                <p>All drawable objects inherit from FabricObject, which provides core functionality like positioning, scaling, rotation, and event handling.</p>
+            </div>
+        </section>
+
+        <section class="key-concepts">
+            <div class="container">
+                <h2>Canvas Architecture Layers</h2>
+                <div class="mermaid">
+                    graph TB
+                        subgraph "Canvas Hierarchy"
+                            A[StaticCanvas] --> B[SelectableCanvas]
+                            B --> C[Canvas]
+                        end
+                        
+                        subgraph "Core Functionality"
+                            D[Rendering Engine]
+                            E[Event System]
+                            F[Object Management]
+                            G[Transform System]
+                        end
+                        
+                        subgraph "Support Systems"
+                            H[DOM Managers]
+                            I[Text Editing]
+                            J[Layout Manager]
+                            K[Control System]
+                        end
+                        
+                        C --> D
+                        C --> E
+                        C --> F
+                        C --> G
+                        
+                        C --> H
+                        C --> I
+                        C --> J
+                        C --> K
+                        
+                        style A fill:#ff6b6b,color:white
+                        style B fill:#4ecdc4,color:white
+                        style C fill:#45b7d1,color:white
+                </div>
+            </div>
+        </section>
+
+        <section class="codebase-stats">
+            <div class="container">
+                <h2>Architectural Design Patterns</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>🔄 Observer Pattern</h3>
+                        <div class="code-block">
+// Example from Observable.ts
+class Observable {
+    on(eventName: string, handler: Function) {
+        this.__eventListeners = this.__eventListeners || {};
+        if (!this.__eventListeners[eventName]) {
+            this.__eventListeners[eventName] = [];
+        }
+        this.__eventListeners[eventName].push(handler);
+    }
+    
+    fire(eventName: string, options?: any) {
+        if (!this.__eventListeners?.[eventName]) return;
+        this.__eventListeners[eventName].forEach(handler => 
+            handler(options)
+        );
+    }
+}</div>
+                        <p><strong>Purpose:</strong> Enables loose coupling between objects. Canvas events (mouse clicks, object changes) are observed by multiple components without tight dependencies.</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h3>🔀 Mixin Pattern</h3>
+                        <div class="code-block">
+// From FabricObject.ts
+export class FabricObject extends InteractiveFabricObject {}
+
+// Apply SVG export capabilities via mixin
+applyMixins(FabricObject, [FabricObjectSVGExportMixin]);
+
+// Mixin adds SVG export methods without inheritance
+class FabricObjectSVGExportMixin {
+    toSVG(options?: TSVGReviver): string {
+        // SVG export logic
+    }
+}</div>
+                        <p><strong>Purpose:</strong> Adds functionality without deep inheritance chains. SVG export, animation capabilities, and other features are mixed in as needed.</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h3>🎯 Strategy Pattern</h3>
+                        <div class="code-block">
+// Layout strategies for different object arrangements
+abstract class LayoutStrategy {
+    abstract calcBoundingBox(objects: FabricObject[]): TBBox;
+}
+
+class FitContentLayout extends LayoutStrategy {
+    calcBoundingBox(objects: FabricObject[]): TBBox {
+        // Fit content strategy
+    }
+}
+
+class FixedLayout extends LayoutStrategy {
+    calcBoundingBox(objects: FabricObject[]): TBBox {
+        // Fixed positioning strategy
+    }
+}</div>
+                        <p><strong>Purpose:</strong> Swappable algorithms for layout, filtering, and rendering. Different strategies can be used based on object types or user preferences.</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h3>🏭 Factory Pattern</h3>
+                        <div class="code-block">
+// ClassRegistry manages object creation
+class ClassRegistry {
+    private classes = new Map&lt;string, any&gt;();
+    
+    setClass(classObject: any, className?: string) {
+        this.classes.set(className || classObject.name, classObject);
+    }
+    
+    createObject(className: string, options: any) {
+        const ObjectClass = this.classes.get(className);
+        return new ObjectClass(options);
+    }
+}
+
+// Usage for creating objects from JSON
+const rect = classRegistry.createObject('Rect', {
+    left: 100, top: 100, width: 50, height: 50
+});</div>
+                        <p><strong>Purpose:</strong> Creates objects dynamically from JSON data or class names. Essential for deserializing saved canvas states and SVG imports.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="architecture-preview">
+            <div class="container">
+                <h2>Event Flow Architecture</h2>
+                <div class="mermaid">
+                    sequenceDiagram
+                        participant User
+                        participant Canvas
+                        participant EventSystem
+                        participant Object
+                        participant Controls
+                        
+                        User->>Canvas: Mouse Click
+                        Canvas->>EventSystem: processEvent()
+                        EventSystem->>EventSystem: Hit Testing
+                        EventSystem->>Object: findTarget()
+                        Object-->>EventSystem: Target Object
+                        EventSystem->>Object: fire('mouse:down')
+                        Object->>Controls: checkControlHit()
+                        Controls-->>Object: Control Action
+                        Object->>Canvas: requestRender()
+                        Canvas->>Canvas: renderAll()
+                        Canvas-->>User: Visual Update
+                </div>
+                <p>The event system processes user interactions through hit testing, identifies target objects, and triggers appropriate handlers while maintaining the render loop.</p>
+            </div>
+        </section>
+
+        <section class="key-concepts">
+            <div class="container">
+                <h2>Core System Components</h2>
+                <div class="concepts-grid">
+                    <div class="concept-card">
+                        <h3>Transformation System</h3>
+                        <p>Uses transformation matrices for all object positioning, scaling, rotation. Matrix operations enable efficient composite transformations and parent-child relationships in groups.</p>
+                        <div class="code-block">
+// Point.ts - Core transformation
+transform(t: TMat2D): Point {
+    return new Point(
+        t[0] * this.x + t[2] * this.y + t[4],
+        t[1] * this.x + t[3] * this.y + t[5]
+    );
+}</div>
+                    </div>
+                    
+                    <div class="concept-card">
+                        <h3>Rendering Pipeline</h3>
+                        <p>Multi-layered rendering system with background, objects, foreground, and overlay layers. Supports caching, clipping, and multiple rendering contexts.</p>
+                        <div class="code-block">
+// Canvas rendering order
+renderAll() {
+    this.renderBackground();
+    this.renderObjects();
+    this.renderForeground();
+    this.renderOverlay();
+}</div>
+                    </div>
+                    
+                    <div class="concept-card">
+                        <h3>Control System</h3>
+                        <p>Interactive handles around objects for transformation. Controls are composable and can be customized for different object types and interaction modes.</p>
+                        <div class="code-block">
+// Control positioning
+const controls = {
+    tl: new Control({ x: -0.5, y: -0.5 }),
+    tr: new Control({ x: 0.5, y: -0.5 }),
+    bl: new Control({ x: -0.5, y: 0.5 }),
+    br: new Control({ x: 0.5, y: 0.5 })
+};</div>
+                    </div>
+                    
+                    <div class="concept-card">
+                        <h3>Hit Testing</h3>
+                        <p>Efficient algorithms to determine which object is under the mouse cursor. Uses bounding box checks, then precise pixel-based testing for complex shapes.</p>
+                        <div class="code-block">
+// Intersection.ts - Point in polygon test
+containsPoint(point: Point, object: FabricObject): boolean {
+    const lines = object._getImageLines();
+    return intersectLineWithPoly(point, lines);
+}</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="architecture-preview">
+            <div class="container">
+                <h2>Memory Management & Performance</h2>
+                <div class="mermaid">
+                    graph TD
+                        A[Object Pool] --> B[Canvas Cache]
+                        B --> C[Texture Atlas]
+                        C --> D[GPU Buffers]
+                        
+                        E[Event Listeners] --> F[WeakRef Cleanup]
+                        F --> G[Observer Disposal]
+                        
+                        H[Layout Manager] --> I[Dirty Regions]
+                        I --> J[Selective Rendering]
+                        
+                        K[Animation Frame] --> L[Request Batching]
+                        L --> M[State Reconciliation]
+                        
+                        style A fill:#ff9ff3
+                        style E fill:#54a0ff
+                        style H fill:#5f27cd
+                        style K fill:#00d2d3
+                </div>
+                <p>Fabric.js implements several performance optimizations including object caching, dirty region tracking, animation frame batching, and proper memory cleanup for large canvases.</p>
+            </div>
+        </section>
+
+        <section class="getting-started">
+            <div class="container">
+                <h2>Extension Points for Developers</h2>
+                <div class="nav-cards">
+                    <div class="nav-card">
+                        <h3>🔧 Custom Objects</h3>
+                        <p>Extend FabricObject to create custom shapes with specialized rendering and interaction behavior.</p>
+                    </div>
+                    <div class="nav-card">
+                        <h3>🎨 Custom Controls</h3>
+                        <p>Create specialized control points for unique transformation patterns or object-specific interactions.</p>
+                    </div>
+                    <div class="nav-card">
+                        <h3>🎭 Custom Filters</h3>
+                        <p>Implement BaseFilter to add new visual effects with WebGL or Canvas 2D backends.</p>
+                    </div>
+                    <div class="nav-card">
+                        <h3>📐 Layout Strategies</h3>
+                        <p>Develop custom layout algorithms for specialized grouping and positioning requirements.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Fabric.js Deep Dive Documentation. Created for educational purposes.</p>
+        </div>
+    </footer>
+
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true, 
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#667eea',
+                primaryTextColor: '#fff',
+                primaryBorderColor: '#764ba2',
+                lineColor: '#333',
+                secondaryColor: '#f8f9fa',
+                tertiaryColor: '#e9ecef'
+            }
+        });
+    </script>
+</body>
+</html>

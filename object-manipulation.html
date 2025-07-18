@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Object Manipulation - Fabric.js Deep Dive</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-container">
+                <h1 class="nav-logo">Fabric.js Deep Dive</h1>
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link">Home</a></li>
+                    <li><a href="architecture.html" class="nav-link">Architecture</a></li>
+                    <li><a href="codebase.html" class="nav-link">Codebase Analysis</a></li>
+                    <li><a href="canvas-drawing.html" class="nav-link">Canvas Drawing</a></li>
+                    <li><a href="object-manipulation.html" class="nav-link active">Object Manipulation</a></li>
+                    <li><a href="imports-exports.html" class="nav-link">Imports & Exports</a></li>
+                    <li><a href="demos.html" class="nav-link">Interactive Demos</a></li>
+                    <li><a href="diagram-guide.html" class="nav-link">Understanding Diagrams</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main style="padding-top: 90px;">
+        <section class="overview">
+            <div class="container">
+                <h1>Object Manipulation: Interactive Canvas Controls</h1>
+                <p>Explore how Fabric.js enables rich object interaction through selection, transformation controls, event handling, and gesture recognition.</p>
+            </div>
+        </section>
+
+        <section class="architecture-preview">
+            <div class="container">
+                <h2>Interaction System Overview</h2>
+                <div class="mermaid">
+                    flowchart TD
+                        A[User Input] --> B{Event Type}
+                        
+                        B -->|Mouse Down| C[Hit Testing]
+                        B -->|Mouse Move| D[Drag Detection]
+                        B -->|Mouse Up| E[Action Complete]
+                        
+                        C --> F{Target Found?}
+                        F -->|Yes| G[Select Object]
+                        F -->|No| H[Clear Selection]
+                        
+                        G --> I[Show Controls]
+                        I --> J[Bind Control Events]
+                        
+                        D --> K{Control Hit?}
+                        K -->|Yes| L[Transform Mode]
+                        K -->|No| M[Drag Mode]
+                        
+                        L --> N[Scale/Rotate/Skew]
+                        M --> O[Translate Position]
+                        
+                        N --> P[Update Transform Matrix]
+                        O --> P
+                        P --> Q[Re-render Canvas]
+                        
+                        style A fill:#667eea,color:white
+                        style G fill:#f093fb,color:white
+                        style L fill:#4facfe,color:white
+                        style M fill:#43e97b,color:white
+                </div>
+                <p>The interaction system processes user input through hit testing, manages object selection, and provides transformation controls for intuitive object manipulation.</p>
+            </div>
+        </section>
+
+        <section class="codebase-stats">
+            <div class="container">
+                <h2>Core Interaction Components</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>🎯 Hit Testing & Selection</h3>
+                        <div class="code-block">
+// From SelectableCanvas.ts
+findTarget(e: TPointerEvent): FabricObject | undefined {
+    const pointer = this.getViewportPoint(e);
+    let target = this._searchPossibleTargets(pointer);
+    
+    // Check if we hit a control point first
+    if (this._activeObject && this._activeObject._findTargetCorner) {
+        const corner = this._activeObject._findTargetCorner(pointer);
+        if (corner) {
+            return this._activeObject;
+        }
+    }
+    
+    return target;
+}
+
+// Point-in-object testing
+containsPoint(point: Point): boolean {
+    const lines = this._getImageLines();
+    return Intersection.pointInPolygon(point, lines);
+}</div>
+                        <p><strong>Purpose:</strong> Determines which object the user clicked on using geometric calculations and bounding box tests for efficient hit detection.</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h3>🔧 Control System</h3>
+                        <div class="code-block">
+// Control positioning and rendering
+const defaultControls = {
+    tl: new Control({ x: -0.5, y: -0.5, actionHandler: scalingActions.scalingXY }),
+    tr: new Control({ x: 0.5, y: -0.5, actionHandler: scalingActions.scalingXY }),
+    bl: new Control({ x: -0.5, y: 0.5, actionHandler: scalingActions.scalingXY }),
+    br: new Control({ x: 0.5, y: 0.5, actionHandler: scalingActions.scalingXY }),
+    mb: new Control({ x: 0, y: 0.5, actionHandler: scalingActions.scalingY }),
+    mt: new Control({ x: 0, y: -0.5, actionHandler: scalingActions.scalingY }),
+    ml: new Control({ x: -0.5, y: 0, actionHandler: scalingActions.scalingX }),
+    mr: new Control({ x: 0.5, y: 0, actionHandler: scalingActions.scalingX }),
+    mtr: new Control({ x: 0, y: -0.5, actionHandler: rotationActions.rotation })
+};
+
+// Control hit testing
+_findTargetCorner(pointer: Point): string | false {
+    const controls = this.controls;
+    for (const key in controls) {
+        if (controls[key].visible && this._controlPointInBounds(key, pointer)) {
+            return key;
+        }
+    }
+    return false;
+}</div>
+                        <p><strong>Purpose:</strong> Interactive control points around selected objects that handle different transformation modes (scale, rotate, skew).</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h3>↔️ Transformation Handlers</h3>
+                        <div class="code-block">
+// Scaling transformation logic
+function scalingXY(eventData: TPointerEvent, transform: Transform) {
+    const { target, corner } = transform;
+    const pointer = getLocalPointer(eventData, target);
+    
+    // Calculate scale factors
+    const scaleX = pointer.x / transform.original.scaleX;
+    const scaleY = pointer.y / transform.original.scaleY;
+    
+    // Apply constraints and proportional scaling
+    if (eventData.shiftKey) {
+        const scale = Math.max(Math.abs(scaleX), Math.abs(scaleY));
+        target.set({
+            scaleX: scale * Math.sign(scaleX),
+            scaleY: scale * Math.sign(scaleY)
+        });
+    } else {
+        target.set({ scaleX, scaleY });
+    }
+    
+    return true;
+}</div>
+                        <p><strong>Purpose:</strong> Action handlers that calculate and apply transformations based on user input, supporting constraints and modifier keys.</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h3>🎭 Event Propagation</h3>
+                        <div class="code-block">
+// Event handling and delegation
+_onMouseMove(e: TPointerEvent) {
+    const target = this.findTarget(e);
+    const pointer = this.getViewportPoint(e);
+    
+    // Handle different interaction states
+    if (this._isCurrentlyDrawing) {
+        this._onMouseMoveInDrawingMode(e);
+    } else if (this._currentTransform) {
+        this._transformObject(e);
+    } else {
+        this._onMouseMoveNoActiveObject(e, target);
+    }
+    
+    // Fire events for target and canvas
+    this.fire('mouse:move', { e, target, pointer });
+    target?.fire('mousemove', { e, pointer });
+}</div>
+                        <p><strong>Purpose:</strong> Central event routing system that handles different interaction modes and propagates events to appropriate handlers.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="key-concepts">
+            <div class="container">
+                <h2>Transformation Mathematics</h2>
+                <div class="concepts-grid">
+                    <div class="concept-card">
+                        <h3>Matrix Transformations</h3>
+                        <p>All object transformations use 2D transformation matrices, enabling efficient composition of multiple transformations and maintaining mathematical precision.</p>
+                        <div class="code-block">
+// Transformation matrix calculation
+calcTransformMatrix(): TMat2D {
+    const center = this.getCenterPoint();
+    return [
+        this.scaleX * Math.cos(this.angle),
+        this.scaleX * Math.sin(this.angle),
+        -this.scaleY * Math.sin(this.angle),
+        this.scaleY * Math.cos(this.angle),
+        center.x,
+        center.y
+    ];
+}</div>
+                    </div>
+                    
+                    <div class="concept-card">
+                        <h3>Anchor Point System</h3>
+                        <p>Objects transform around anchor points, with controls positioned relative to object bounds. The origin point affects how transformations are applied.</p>
+                        <div class="code-block">
+// Origin-based transformation
+const origin = this.translateToOriginPoint(
+    center, 
+    originX, 
+    originY
+);
+this.setPositionByOrigin(origin, originX, originY);</div>
+                    </div>
+                    
+                    <div class="concept-card">
+                        <h3>Constraint Systems</h3>
+                        <p>Transformations can be constrained by modifier keys (Shift for proportional scaling), object properties, or custom constraint functions.</p>
+                        <div class="code-block">
+// Proportional scaling constraint
+if (transform.corner === 'mt' || transform.corner === 'mb') {
+    // Only allow vertical scaling
+    scaleX = 1;
+} else if (eventData.shiftKey) {
+    // Proportional scaling
+    scaleY = scaleX;
+}</div>
+                    </div>
+                    
+                    <div class="concept-card">
+                        <h3>Live Transformation</h3>
+                        <p>Transformations are applied in real-time during user interaction, with immediate visual feedback and event emission for reactive applications.</p>
+                        <div class="code-block">
+// Real-time transformation update
+_transformObject(e: TPointerEvent) {
+    const transform = this._currentTransform;
+    transform.actionHandler(e, transform);
+    this.requestRenderAll();
+    this.fire('object:scaling', { target: transform.target });
+}</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="architecture-preview">
+            <div class="container">
+                <h2>Selection State Management</h2>
+                <div class="beginner-note">
+                    <h3>🎭 Understanding State Diagrams</h3>
+                    <p>This diagram shows how objects change between different "states" (conditions) based on user actions:</p>
+                    <ul>
+                        <li><strong>Circles = States</strong> (like unselected, selected, editing)</li>
+                        <li><strong>Arrows = Transitions</strong> (how to move between states)</li>
+                        <li><strong>Labels = Triggers</strong> (what causes the change)</li>
+                    </ul>
+                    <p>It's like a map showing all possible modes an object can be in! <a href="diagram-guide.html">📚 Learn more</a></p>
+                </div>
+                <div class="mermaid">
+                    stateDiagram-v2
+                        [*] --> NoSelection
+                        
+                        NoSelection --> SingleObject: click object
+                        SingleObject --> NoSelection: click empty area
+                        SingleObject --> MultipleObjects: ctrl+click object
+                        SingleObject --> SingleObject: click different object
+                        
+                        MultipleObjects --> ActiveSelection: auto group
+                        ActiveSelection --> SingleObject: click object
+                        ActiveSelection --> NoSelection: click empty area
+                        ActiveSelection --> MultipleObjects: ctrl+click to remove
+                        
+                        SingleObject --> Transforming: start drag on control
+                        ActiveSelection --> Transforming: start drag on control
+                        Transforming --> SingleObject: end transformation
+                        Transforming --> ActiveSelection: end transformation
+                        
+                        note right of Transforming
+                            During transformation:
+                            - Live preview
+                            - Constraint handling
+                            - Event emission
+                        end note
+                </div>
+                <p>Selection states manage which objects are active and how they respond to user interactions, with automatic grouping for multi-selection scenarios.</p>
+            </div>
+        </section>
+
+        <section class="codebase-stats">
+            <div class="container">
+                <h2>Advanced Interaction Features</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>👥 Multi-Selection</h3>
+                        <div class="code-block">
+// Active selection for multiple objects
+class ActiveSelection extends Group {
+    constructor(objects: FabricObject[], options?: Partial&lt;ActiveSelectionOptions&gt;) {
+        super(objects, options);
+        this.type = 'activeSelection';
+    }
+    
+    // Handle collective transformations
+    _set(key: string, value: any) {
+        if (key === 'canvas') {
+            this.forEachObject(obj => obj.set(key, value));
+        }
+        return super._set(key, value);
+    }
+}
+
+// Multi-selection management
+_handleGrouping(e: TPointerEvent, target: FabricObject) {
+    if (e.shiftKey || e.ctrlKey) {
+        this._groupSelectedObjects();
+    }
+}</div>
+                        <p>Multiple objects can be selected and transformed together using ActiveSelection, which creates a temporary group for collective manipulation.</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h3>📐 Snapping & Guidelines</h3>
+                        <div class="code-block">
+// Alignment guidelines (from extensions)
+function collectVerticalLines(target: FabricObject, canvas: Canvas) {
+    const lines = [];
+    const targetCenter = target.getCenterPoint();
+    
+    canvas.forEachObject(obj => {
+        if (obj === target) return;
+        
+        const objCenter = obj.getCenterPoint();
+        const objBounds = obj.getBoundingRect();
+        
+        // Center alignment
+        lines.push({
+            x: objCenter.x,
+            type: 'center'
+        });
+        
+        // Edge alignment
+        lines.push(
+            { x: objBounds.left, type: 'left' },
+            { x: objBounds.left + objBounds.width, type: 'right' }
+        );
+    });
+    
+    return lines;
+}</div>
+                        <p>Optional alignment guidelines help users position objects precisely by showing visual guides when objects align with each other.</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h3>🖱️ Custom Cursors</h3>
+                        <div class="code-block">
+// Dynamic cursor management
+_setCursorFromEvent(e: TPointerEvent, target?: FabricObject) {
+    if (!target) {
+        this.setCursor('default');
+        return;
+    }
+    
+    const corner = target._findTargetCorner(this.getViewportPoint(e));
+    if (corner) {
+        this.setCursor(this._getRotatedCornerCursor(corner, target));
+    } else if (target.moveCursor) {
+        this.setCursor(target.moveCursor);
+    } else {
+        this.setCursor('move');
+    }
+}
+
+// Cursor rotation based on object angle
+_getRotatedCornerCursor(corner: string, target: FabricObject): string {
+    const cursorMap = { tl: 'nw', tr: 'ne', bl: 'sw', br: 'se' };
+    const angle = target.angle % 360;
+    return this._getRotatedCursor(cursorMap[corner], angle);
+}</div>
+                        <p>Smart cursor management provides visual feedback about available interactions, with cursors that rotate based on object orientation.</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h3>⌨️ Keyboard Shortcuts</h3>
+                        <div class="code-block">
+// Keyboard event handling
+_onKeyDown(e: KeyboardEvent) {
+    const key = e.keyCode || e.which;
+    
+    switch (key) {
+        case 8: // Backspace
+        case 46: // Delete
+            this._deleteSelectedObjects();
+            break;
+        case 67: // C
+            if (e.ctrlKey || e.metaKey) this._copyObject();
+            break;
+        case 86: // V
+            if (e.ctrlKey || e.metaKey) this._pasteObject();
+            break;
+        case 90: // Z
+            if (e.ctrlKey || e.metaKey) this._handleUndo(e.shiftKey);
+            break;
+    }
+}
+
+// Arrow key movement
+_onKeyMove(e: KeyboardEvent) {
+    const step = e.shiftKey ? 10 : 1;
+    const activeObject = this.getActiveObject();
+    
+    if (activeObject) {
+        activeObject.left += this._getMovementDelta(e.keyCode) * step;
+        this.requestRenderAll();
+    }
+}</div>
+                        <p>Comprehensive keyboard support for common operations like copy/paste, delete, undo, and precise object movement with arrow keys.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="getting-started">
+            <div class="container">
+                <h2>Interaction Flow Example</h2>
+                <div class="mermaid">
+                    sequenceDiagram
+                        participant User
+                        participant Canvas
+                        participant HitTest
+                        participant Object
+                        participant Controls
+                        participant Transform
+                        
+                        User->>Canvas: mousedown on object
+                        Canvas->>HitTest: findTarget(pointer)
+                        HitTest->>Object: containsPoint(pointer)
+                        Object-->>HitTest: true
+                        HitTest-->>Canvas: target object
+                        Canvas->>Object: setActiveObject()
+                        Object->>Controls: show controls
+                        
+                        User->>Canvas: mousedown on control
+                        Canvas->>Controls: findTargetCorner(pointer)
+                        Controls-->>Canvas: 'br' (bottom-right)
+                        Canvas->>Transform: initTransform('br', object)
+                        
+                        User->>Canvas: mousemove (drag)
+                        Canvas->>Transform: actionHandler(event, transform)
+                        Transform->>Object: set({ scaleX, scaleY })
+                        Object->>Canvas: fire('object:scaling')
+                        Canvas->>Canvas: requestRenderAll()
+                        
+                        User->>Canvas: mouseup
+                        Canvas->>Transform: finishTransform()
+                        Transform->>Object: fire('object:modified')
+                        Canvas->>Canvas: renderAll()
+                </div>
+            </div>
+        </section>
+
+        <section class="key-concepts">
+            <div class="container">
+                <h2>Performance Considerations</h2>
+                <div class="nav-cards">
+                    <div class="nav-card">
+                        <h3>🎯 Hit Testing Optimization</h3>
+                        <p>Spatial indexing and bounding box pre-checks reduce expensive point-in-polygon calculations for complex shapes.</p>
+                    </div>
+                    <div class="nav-card">
+                        <h3>⚡ Transform Caching</h3>
+                        <p>Transformation matrices are cached and only recalculated when object properties change, avoiding redundant calculations.</p>
+                    </div>
+                    <div class="nav-card">
+                        <h3>🎬 Smooth Interactions</h3>
+                        <p>Interaction feedback uses requestAnimationFrame for smooth 60fps updates during transformations and drag operations.</p>
+                    </div>
+                    <div class="nav-card">
+                        <h3>📱 Touch Support</h3>
+                        <p>Multi-touch gestures for mobile devices enable pinch-to-zoom, rotation, and other touch-based interactions.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Fabric.js Deep Dive Documentation. Created for educational purposes.</p>
+        </div>
+    </footer>
+
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+</body>
+</html>

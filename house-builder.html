@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>House Builder Demo - Fabric.js Deep Dive</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .house-builder {
+            background: linear-gradient(135deg, #87CEEB 0%, #98FB98 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        
+        .builder-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .builder-grid {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 30px;
+            align-items: start;
+        }
+        
+        .canvas-area {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .canvas-area canvas {
+            border: 3px solid #4CAF50;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .builder-controls {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .control-section {
+            margin-bottom: 30px;
+        }
+        
+        .control-section h3 {
+            color: #2E7D32;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .builder-btn {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .builder-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .house-btn {
+            background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+            color: white;
+        }
+        
+        .door-btn {
+            background: linear-gradient(135deg, #654321 0%, #8B4513 100%);
+            color: white;
+        }
+        
+        .window-btn {
+            background: linear-gradient(135deg, #87CEEB 0%, #4169E1 100%);
+            color: white;
+        }
+        
+        .roof-btn {
+            background: linear-gradient(135deg, #DC143C 0%, #B22222 100%);
+            color: white;
+        }
+        
+        .tree-btn {
+            background: linear-gradient(135deg, #228B22 0%, #32CD32 100%);
+            color: white;
+        }
+        
+        .mountain-btn {
+            background: linear-gradient(135deg, #696969 0%, #2F4F4F 100%);
+            color: white;
+        }
+        
+        .bird-btn {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: white;
+        }
+        
+        .clear-btn {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF5252 100%);
+            color: white;
+        }
+        
+        .scene-btn {
+            background: linear-gradient(135deg, #9C27B0 0%, #673AB7 100%);
+            color: white;
+            font-size: 18px;
+            padding: 20px;
+        }
+        
+        .icon {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+        
+        .instructions {
+            background: #E8F5E8;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #4CAF50;
+            margin-bottom: 20px;
+        }
+        
+        .instructions h4 {
+            color: #2E7D32;
+            margin-bottom: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .builder-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .builder-controls {
+                order: -1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-container">
+                <h1 class="nav-logo">Fabric.js Deep Dive</h1>
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link">Home</a></li>
+                    <li><a href="architecture.html" class="nav-link">Architecture</a></li>
+                    <li><a href="codebase.html" class="nav-link">Codebase Analysis</a></li>
+                    <li><a href="canvas-drawing.html" class="nav-link">Canvas Drawing</a></li>
+                    <li><a href="object-manipulation.html" class="nav-link">Object Manipulation</a></li>
+                    <li><a href="imports-exports.html" class="nav-link">Imports & Exports</a></li>
+                    <li><a href="demos.html" class="nav-link">Interactive Demos</a></li>
+                    <li><a href="diagram-guide.html" class="nav-link">Understanding Diagrams</a></li>
+                    <li><a href="house-builder.html" class="nav-link active">House Builder</a></li>
+                    <li><a href="house-demo-explained.html" class="nav-link">Demo Explained</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <div class="house-builder" style="padding-top: 90px;">
+        <div class="builder-container">
+            <h1 style="text-align: center; color: white; font-size: 3rem; margin-bottom: 30px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+                🏠 House Builder Demo
+            </h1>
+            
+            <div class="instructions">
+                <h4>🎨 Build Your Dream Scene!</h4>
+                <p>Click the buttons below to add different elements to your canvas. You can move, resize, and arrange everything to create your perfect scene. Each click adds a new element at a random position!</p>
+            </div>
+            
+            <div class="builder-grid">
+                <div class="canvas-area">
+                    <canvas id="houseCanvas" width="800" height="600"></canvas>
+                </div>
+                
+                <div class="builder-controls">
+                    <div class="control-section">
+                        <h3>
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z" />
+                            </svg>
+                            House Parts
+                        </h3>
+                        <button class="builder-btn house-btn" id="addHouseBtn">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z" />
+                            </svg>
+                            Add House
+                        </button>
+                        <button class="builder-btn door-btn" id="addDoorBtn">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <path d="M8,3V5H4V21H20V5H16V3H8M14,17V19H10V17H14Z" />
+                            </svg>
+                            Add Door
+                        </button>
+                        <button class="builder-btn window-btn" id="addWindowBtn">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <path d="M3,3V21H21V3H3M19,19H5V5H19V19M11,7H13V11H17V13H13V17H11V13H7V11H11V7Z" />
+                            </svg>
+                            Add Window
+                        </button>
+                        <button class="builder-btn roof-btn" id="addRoofBtn">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <path d="M12,3L2,12H5V20H19V12H22L12,3Z" />
+                            </svg>
+                            Add Roof
+                        </button>
+                    </div>
+                    
+                    <div class="control-section">
+                        <h3>
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <path d="M11,1L11,8L2,12L11,16L11,23L16,20.42L20.74,22L22,20L21,18L22,16L20.74,14L16,15.58L11,13L16,10.42L20.74,12L22,10L21,8L22,6L20.74,4L16,5.58L11,3L16,0.42L20.74,2L22,0V2L21,4L22,6L20.74,8L16,6.42L11,8V1Z" />
+                            </svg>
+                            Nature & Environment
+                        </h3>
+                        <button class="builder-btn tree-btn" id="addTreeBtn">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <path d="M11,1L11,6L7,2L11,6L15,2L11,6L11,8L6,4L11,8L16,4L11,8L11,13L4,9L11,13L18,9L11,13L11,23H13V13L20,17L13,13L13,8L18,12L13,8L13,6L17,10L13,6L13,1H11Z" />
+                            </svg>
+                            Add Tree
+                        </button>
+                        <button class="builder-btn mountain-btn" id="addMountainBtn">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <path d="M14,6L10.25,11L13.1,14.8L11.5,16C9.81,13.75 7,10 7,10L1,20H23L14,6Z" />
+                            </svg>
+                            Add Mountain
+                        </button>
+                        <button class="builder-btn bird-btn" id="addBirdBtn">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <path d="M23,11.5C23,11.5 18.5,10.87 16,8.87C16,8.87 14.25,4.37 11.24,4.37C11.24,4.37 9.5,6.12 9.5,8.87L7,9.12L5.5,11.5C5.5,11.5 9.87,12.87 11.87,14.87C11.87,14.87 16.37,16.62 16.37,19.62C16.37,19.62 14.62,21.37 11.87,21.37C11.87,21.37 9.12,19.62 9.12,16.62L7,16.37L5.5,14C5.5,14 1.12,15.37 1.12,18.37C1.12,18.37 2.87,21.12 5.62,21.12C5.62,21.12 8.37,19.37 8.37,16.37C8.37,16.37 10.12,14.62 12.87,14.62C12.87,14.62 15.62,16.37 15.62,19.37C15.62,19.37 13.87,22.12 11.12,22.12L23,11.5Z" />
+                            </svg>
+                            Add Bird
+                        </button>
+                    </div>
+                    
+                    <div class="control-section">
+                        <h3>
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <path d="M12,2L13.09,8.26L20,9L13.09,9.74L12,16L10.91,9.74L4,9L10.91,8.26L12,2Z" />
+                            </svg>
+                            Quick Actions
+                        </h3>
+                        <button class="builder-btn scene-btn" id="createSceneBtn">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <path d="M12,2L13.09,8.26L20,9L13.09,9.74L12,16L10.91,9.74L4,9L10.91,8.26L12,2Z" />
+                            </svg>
+                            Create Complete Scene
+                        </button>
+                        <button class="builder-btn clear-btn" id="clearCanvasBtn">
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
+                            </svg>
+                            Clear All
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.addEventListener('load', function() {
+            const canvas = new fabric.Canvas('houseCanvas');
+            
+            // Set a nice sky background
+            canvas.setBackgroundColor({
+                type: 'linear',
+                coords: { x1: 0, y1: 0, x2: 0, y2: 600 },
+                colorStops: [
+                    { offset: 0, color: '#87CEEB' },
+                    { offset: 0.7, color: '#98FB98' },
+                    { offset: 1, color: '#90EE90' }
+                ]
+            }, canvas.renderAll.bind(canvas));
+
+            // Helper function to get random position
+            function getRandomPosition(width = 50, height = 50) {
+                return {
+                    left: Math.random() * (canvas.width - width - 100) + 50,
+                    top: Math.random() * (canvas.height - height - 100) + 50
+                };
+            }
+
+            // Add House (rectangle for main structure)
+            document.getElementById('addHouseBtn').addEventListener('click', () => {
+                const pos = getRandomPosition(120, 100);
+                const house = new fabric.Rect({
+                    left: pos.left,
+                    top: pos.top,
+                    width: 120,
+                    height: 100,
+                    fill: '#DEB887',
+                    stroke: '#8B4513',
+                    strokeWidth: 3,
+                    rx: 5,
+                    ry: 5
+                });
+                canvas.add(house);
+            });
+
+            // Add Door
+            document.getElementById('addDoorBtn').addEventListener('click', () => {
+                const pos = getRandomPosition(25, 50);
+                const door = new fabric.Rect({
+                    left: pos.left,
+                    top: pos.top,
+                    width: 25,
+                    height: 50,
+                    fill: '#654321',
+                    stroke: '#4A4A4A',
+                    strokeWidth: 2,
+                    rx: 3,
+                    ry: 3
+                });
+                
+                // Add door handle
+                const handle = new fabric.Circle({
+                    left: pos.left + 18,
+                    top: pos.top + 25,
+                    radius: 2,
+                    fill: '#FFD700',
+                    originX: 'center',
+                    originY: 'center'
+                });
+                
+                const doorGroup = new fabric.Group([door, handle]);
+                canvas.add(doorGroup);
+            });
+
+            // Add Window
+            document.getElementById('addWindowBtn').addEventListener('click', () => {
+                const pos = getRandomPosition(40, 40);
+                const windowFrame = new fabric.Rect({
+                    left: pos.left,
+                    top: pos.top,
+                    width: 40,
+                    height: 40,
+                    fill: '#87CEEB',
+                    stroke: '#4A4A4A',
+                    strokeWidth: 3,
+                    rx: 2,
+                    ry: 2
+                });
+                
+                // Window cross
+                const crossV = new fabric.Rect({
+                    left: pos.left + 18,
+                    top: pos.top + 2,
+                    width: 4,
+                    height: 36,
+                    fill: '#4A4A4A'
+                });
+                
+                const crossH = new fabric.Rect({
+                    left: pos.left + 2,
+                    top: pos.top + 18,
+                    width: 36,
+                    height: 4,
+                    fill: '#4A4A4A'
+                });
+                
+                const windowGroup = new fabric.Group([windowFrame, crossV, crossH]);
+                canvas.add(windowGroup);
+            });
+
+            // Add Roof (triangle)
+            document.getElementById('addRoofBtn').addEventListener('click', () => {
+                const pos = getRandomPosition(140, 60);
+                const roof = new fabric.Triangle({
+                    left: pos.left,
+                    top: pos.top,
+                    width: 140,
+                    height: 60,
+                    fill: '#DC143C',
+                    stroke: '#B22222',
+                    strokeWidth: 2
+                });
+                canvas.add(roof);
+            });
+
+            // Add Tree
+            document.getElementById('addTreeBtn').addEventListener('click', () => {
+                const pos = getRandomPosition(40, 80);
+                
+                // Tree trunk
+                const trunk = new fabric.Rect({
+                    left: pos.left + 15,
+                    top: pos.top + 50,
+                    width: 10,
+                    height: 30,
+                    fill: '#8B4513',
+                    originX: 'center'
+                });
+                
+                // Tree crown
+                const crown = new fabric.Circle({
+                    left: pos.left + 20,
+                    top: pos.top + 20,
+                    radius: 25,
+                    fill: '#228B22',
+                    stroke: '#006400',
+                    strokeWidth: 2,
+                    originX: 'center',
+                    originY: 'center'
+                });
+                
+                const treeGroup = new fabric.Group([trunk, crown]);
+                canvas.add(treeGroup);
+            });
+
+            // Add Mountain
+            document.getElementById('addMountainBtn').addEventListener('click', () => {
+                const pos = getRandomPosition(100, 80);
+                const mountain = new fabric.Triangle({
+                    left: pos.left,
+                    top: pos.top,
+                    width: 100,
+                    height: 80,
+                    fill: '#696969',
+                    stroke: '#2F4F4F',
+                    strokeWidth: 2
+                });
+                
+                // Snow cap
+                const snowCap = new fabric.Triangle({
+                    left: pos.left + 25,
+                    top: pos.top,
+                    width: 50,
+                    height: 25,
+                    fill: '#FFFFFF',
+                    stroke: '#E0E0E0',
+                    strokeWidth: 1
+                });
+                
+                const mountainGroup = new fabric.Group([mountain, snowCap]);
+                canvas.add(mountainGroup);
+            });
+
+            // Add Bird (simple V shape)
+            document.getElementById('addBirdBtn').addEventListener('click', () => {
+                const pos = getRandomPosition(30, 15);
+                
+                // Create a simple bird shape using path
+                const birdPath = `M ${pos.left} ${pos.top + 10} L ${pos.left + 10} ${pos.top} L ${pos.left + 15} ${pos.top + 8} L ${pos.left + 20} ${pos.top} L ${pos.left + 30} ${pos.top + 10}`;
+                
+                const bird = new fabric.Path(birdPath, {
+                    fill: '',
+                    stroke: '#000000',
+                    strokeWidth: 3,
+                    strokeLineCap: 'round',
+                    strokeLineJoin: 'round'
+                });
+                
+                canvas.add(bird);
+            });
+
+            // Create Complete Scene
+            document.getElementById('createSceneBtn').addEventListener('click', () => {
+                canvas.clear();
+                
+                // Reset background
+                canvas.setBackgroundColor({
+                    type: 'linear',
+                    coords: { x1: 0, y1: 0, x2: 0, y2: 600 },
+                    colorStops: [
+                        { offset: 0, color: '#87CEEB' },
+                        { offset: 0.7, color: '#98FB98' },
+                        { offset: 1, color: '#90EE90' }
+                    ]
+                }, canvas.renderAll.bind(canvas));
+
+                // Add mountains in background
+                const mountain1 = new fabric.Triangle({
+                    left: 50,
+                    top: 200,
+                    width: 150,
+                    height: 120,
+                    fill: '#696969',
+                    stroke: '#2F4F4F',
+                    strokeWidth: 2
+                });
+                
+                const mountain2 = new fabric.Triangle({
+                    left: 180,
+                    top: 180,
+                    width: 180,
+                    height: 140,
+                    fill: '#556B2F',
+                    stroke: '#2F4F4F',
+                    strokeWidth: 2
+                });
+
+                // Add main house
+                const house = new fabric.Rect({
+                    left: 350,
+                    top: 350,
+                    width: 150,
+                    height: 120,
+                    fill: '#DEB887',
+                    stroke: '#8B4513',
+                    strokeWidth: 3,
+                    rx: 5,
+                    ry: 5
+                });
+
+                // Add roof
+                const roof = new fabric.Triangle({
+                    left: 330,
+                    top: 290,
+                    width: 190,
+                    height: 80,
+                    fill: '#DC143C',
+                    stroke: '#B22222',
+                    strokeWidth: 2
+                });
+
+                // Add door
+                const door = new fabric.Rect({
+                    left: 410,
+                    top: 420,
+                    width: 30,
+                    height: 50,
+                    fill: '#654321',
+                    stroke: '#4A4A4A',
+                    strokeWidth: 2,
+                    rx: 3,
+                    ry: 3
+                });
+
+                // Add windows
+                const window1 = new fabric.Rect({
+                    left: 365,
+                    top: 375,
+                    width: 35,
+                    height: 35,
+                    fill: '#87CEEB',
+                    stroke: '#4A4A4A',
+                    strokeWidth: 3
+                });
+
+                const window2 = new fabric.Rect({
+                    left: 450,
+                    top: 375,
+                    width: 35,
+                    height: 35,
+                    fill: '#87CEEB',
+                    stroke: '#4A4A4A',
+                    strokeWidth: 3
+                });
+
+                // Add trees
+                const tree1 = createTree(250, 380);
+                const tree2 = createTree(580, 390);
+                const tree3 = createTree(150, 420);
+
+                // Add birds
+                for (let i = 0; i < 3; i++) {
+                    const birdX = 100 + i * 200;
+                    const birdY = 100 + Math.random() * 50;
+                    const birdPath = `M ${birdX} ${birdY + 10} L ${birdX + 10} ${birdY} L ${birdX + 15} ${birdY + 8} L ${birdX + 20} ${birdY} L ${birdX + 30} ${birdY + 10}`;
+                    
+                    const bird = new fabric.Path(birdPath, {
+                        fill: '',
+                        stroke: '#000000',
+                        strokeWidth: 2,
+                        strokeLineCap: 'round'
+                    });
+                    canvas.add(bird);
+                }
+
+                // Add all elements to canvas
+                canvas.add(mountain1, mountain2, house, roof, door, window1, window2, tree1, tree2, tree3);
+                
+                // Add sun
+                const sun = new fabric.Circle({
+                    left: 650,
+                    top: 80,
+                    radius: 40,
+                    fill: '#FFD700',
+                    stroke: '#FFA500',
+                    strokeWidth: 3
+                });
+                canvas.add(sun);
+            });
+
+            // Helper function to create a tree
+            function createTree(x, y) {
+                const trunk = new fabric.Rect({
+                    left: x + 15,
+                    top: y + 50,
+                    width: 12,
+                    height: 40,
+                    fill: '#8B4513',
+                    originX: 'center'
+                });
+                
+                const crown = new fabric.Circle({
+                    left: x + 20,
+                    top: y + 20,
+                    radius: 30,
+                    fill: '#228B22',
+                    stroke: '#006400',
+                    strokeWidth: 2,
+                    originX: 'center',
+                    originY: 'center'
+                });
+                
+                return new fabric.Group([trunk, crown]);
+            }
+
+            // Clear Canvas
+            document.getElementById('clearCanvasBtn').addEventListener('click', () => {
+                canvas.clear();
+                canvas.setBackgroundColor({
+                    type: 'linear',
+                    coords: { x1: 0, y1: 0, x2: 0, y2: 600 },
+                    colorStops: [
+                        { offset: 0, color: '#87CEEB' },
+                        { offset: 0.7, color: '#98FB98' },
+                        { offset: 1, color: '#90EE90' }
+                    ]
+                }, canvas.renderAll.bind(canvas));
+            });
+
+        }); // End of window load event
+    </script>
+</body>
+</html>

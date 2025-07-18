@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Understanding Diagrams - Fabric.js Deep Dive</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-container">
+                <h1 class="nav-logo">Fabric.js Deep Dive</h1>
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link">Home</a></li>
+                    <li><a href="architecture.html" class="nav-link">Architecture</a></li>
+                    <li><a href="codebase.html" class="nav-link">Codebase Analysis</a></li>
+                    <li><a href="canvas-drawing.html" class="nav-link">Canvas Drawing</a></li>
+                    <li><a href="object-manipulation.html" class="nav-link">Object Manipulation</a></li>
+                    <li><a href="imports-exports.html" class="nav-link">Imports & Exports</a></li>
+                    <li><a href="demos.html" class="nav-link">Interactive Demos</a></li>
+                    <li><a href="diagram-guide.html" class="nav-link active">Understanding Diagrams</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main style="padding-top: 90px;">
+        <section class="overview">
+            <div class="container">
+                <h1>Understanding Diagrams: A Beginner's Guide</h1>
+                <p>Software developers use diagrams to visualize complex ideas. This guide explains how to read the different types of diagrams you'll see throughout this documentation.</p>
+                
+                <div class="beginner-note">
+                    <h3>📚 Why Do Developers Use Diagrams?</h3>
+                    <p>Imagine trying to explain how a car engine works using only words - it would be confusing! Diagrams are like blueprints or maps that show:</p>
+                    <ul>
+                        <li><strong>How things connect</strong> - What parts work together</li>
+                        <li><strong>How things flow</strong> - The order of operations</li>
+                        <li><strong>How things are organized</strong> - The structure of the code</li>
+                        <li><strong>How things change over time</strong> - What happens when users interact</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Class Diagrams -->
+        <section class="demo-section">
+            <div class="container">
+                <h2>📦 Class Diagrams: The Building Blocks</h2>
+                <div class="demo-grid">
+                    <div class="diagram-container">
+                        <div class="mermaid">
+                            classDiagram
+                                class Animal {
+                                    +name: string
+                                    +age: number
+                                    +eat()
+                                    +sleep()
+                                }
+                                
+                                class Dog {
+                                    +breed: string
+                                    +bark()
+                                    +wagTail()
+                                }
+                                
+                                class Cat {
+                                    +furColor: string
+                                    +meow()
+                                    +purr()
+                                }
+                                
+                                Animal <|-- Dog
+                                Animal <|-- Cat
+                        </div>
+                    </div>
+                    <div class="demo-explanation">
+                        <h3>How to Read Class Diagrams</h3>
+                        <div class="explanation-cards">
+                            <div class="explanation-card">
+                                <h4>📦 The Boxes (Classes)</h4>
+                                <p><strong>Think of them like cookie cutters!</strong></p>
+                                <ul>
+                                    <li>Each box represents a "template" for creating objects</li>
+                                    <li><code>Animal</code> is the template for all animals</li>
+                                    <li><code>Dog</code> and <code>Cat</code> are specific types of animals</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="explanation-card">
+                                <h4>🏷️ Properties vs Methods</h4>
+                                <p><strong>Properties = What they have, Methods = What they can do</strong></p>
+                                <ul>
+                                    <li><strong>Properties:</strong> <code>name: string</code> (every animal has a name)</li>
+                                    <li><strong>Methods:</strong> <code>eat()</code> (every animal can eat)</li>
+                                    <li>The <code>+</code> means "public" (anyone can use it)</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="explanation-card">
+                                <h4>🔗 The Arrows (Inheritance)</h4>
+                                <p><strong>Like family trees!</strong></p>
+                                <ul>
+                                    <li>Arrow means "is a type of"</li>
+                                    <li>Dog → Animal means "Dog is a type of Animal"</li>
+                                    <li>Dogs get all Animal properties + their own special ones</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="real-world-example">
+                            <h4>💡 In Fabric.js:</h4>
+                            <div class="code-block">
+// This is like the class diagram above!
+class FabricObject {
+    left: number;     // Property: position
+    top: number;      // Property: position
+    render() { }      // Method: draw on canvas
+}
+
+class Rect extends FabricObject {
+    width: number;    // Special property for rectangles
+    height: number;   // Special property for rectangles
+}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Flowcharts -->
+        <section class="demo-section">
+            <div class="container">
+                <h2>🌊 Flowcharts: Following the Path</h2>
+                <div class="demo-grid">
+                    <div class="diagram-container">
+                        <div class="mermaid">
+                            flowchart TD
+                                A[User clicks mouse] --> B{Is there an object under mouse?}
+                                B -->|Yes| C[Select the object]
+                                B -->|No| D[Clear selection]
+                                C --> E[Show control handles]
+                                E --> F[Wait for next action]
+                                D --> F
+                                F --> G[End]
+                                
+                                style A fill:#e1f5fe
+                                style B fill:#fff3e0
+                                style C fill:#e8f5e8
+                                style D fill:#fce4ec
+                                style E fill:#f3e5f5
+                        </div>
+                    </div>
+                    <div class="demo-explanation">
+                        <h3>How to Read Flowcharts</h3>
+                        <div class="explanation-cards">
+                            <div class="explanation-card">
+                                <h4>🎯 Different Shapes Mean Different Things</h4>
+                                <ul>
+                                    <li><strong>Rectangles:</strong> Actions or processes ("Select the object")</li>
+                                    <li><strong>Diamonds:</strong> Decisions or questions ("Is there an object?")</li>
+                                    <li><strong>Ovals:</strong> Start or end points ("User clicks mouse")</li>
+                                    <li><strong>Arrows:</strong> Show the flow of control</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="explanation-card">
+                                <h4>❓ Decision Points (Diamonds)</h4>
+                                <p><strong>Like a fork in the road!</strong></p>
+                                <ul>
+                                    <li>Always ask a Yes/No question</li>
+                                    <li>Two arrows come out: one for "Yes", one for "No"</li>
+                                    <li>The program follows different paths based on the answer</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="explanation-card">
+                                <h4>🎬 Reading the Story</h4>
+                                <p><strong>Follow the arrows like reading a comic strip:</strong></p>
+                                <ol>
+                                    <li>Start at the beginning (usually top)</li>
+                                    <li>Follow arrows from shape to shape</li>
+                                    <li>At diamonds, pick the path that matches your situation</li>
+                                    <li>Keep going until you reach the end</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sequence Diagrams -->
+        <section class="demo-section">
+            <div class="container">
+                <h2>📞 Sequence Diagrams: Who Talks to Whom</h2>
+                <div class="demo-grid">
+                    <div class="diagram-container">
+                        <div class="mermaid">
+                            sequenceDiagram
+                                participant User
+                                participant Canvas
+                                participant Object
+                                
+                                User->>Canvas: Click on object
+                                Canvas->>Object: Are you at this position?
+                                Object-->>Canvas: Yes, I am!
+                                Canvas->>Object: You are now selected
+                                Object->>Canvas: Show my control handles
+                                Canvas-->>User: Display updated canvas
+                        </div>
+                    </div>
+                    <div class="demo-explanation">
+                        <h3>How to Read Sequence Diagrams</h3>
+                        <div class="explanation-cards">
+                            <div class="explanation-card">
+                                <h4>👥 The Participants</h4>
+                                <p><strong>Like actors in a play!</strong></p>
+                                <ul>
+                                    <li>Each column represents a different "actor" in the system</li>
+                                    <li><code>User</code> = The person using the app</li>
+                                    <li><code>Canvas</code> = The drawing surface code</li>
+                                    <li><code>Object</code> = A shape on the canvas</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="explanation-card">
+                                <h4>💬 The Messages (Arrows)</h4>
+                                <p><strong>Like text messages between friends!</strong></p>
+                                <ul>
+                                    <li><strong>Solid arrow (→):</strong> "Hey, do this!" (calling a function)</li>
+                                    <li><strong>Dashed arrow (⇢):</strong> "Here's your answer" (returning a result)</li>
+                                    <li>Messages flow from left to right, top to bottom</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="explanation-card">
+                                <h4>⏰ Time Flows Downward</h4>
+                                <p><strong>Like reading a timeline!</strong></p>
+                                <ul>
+                                    <li>Start at the top and read downward</li>
+                                    <li>Earlier events are higher up</li>
+                                    <li>Later events are lower down</li>
+                                    <li>Shows the order of operations clearly</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- State Diagrams -->
+        <section class="demo-section">
+            <div class="container">
+                <h2>🎭 State Diagrams: How Things Change</h2>
+                <div class="demo-grid">
+                    <div class="diagram-container">
+                        <div class="mermaid">
+                            stateDiagram-v2
+                                [*] --> Unselected
+                                
+                                Unselected --> Selected: user clicks object
+                                Selected --> Unselected: user clicks empty area
+                                Selected --> Editing: user double-clicks text
+                                Selected --> Dragging: user drags object
+                                
+                                Editing --> Selected: user clicks outside
+                                Dragging --> Selected: user releases mouse
+                                
+                                note right of Selected
+                                    Object shows
+                                    control handles
+                                end note
+                                
+                                note right of Editing
+                                    Text cursor
+                                    is visible
+                                end note
+                        </div>
+                    </div>
+                    <div class="demo-explanation">
+                        <h3>How to Read State Diagrams</h3>
+                        <div class="explanation-cards">
+                            <div class="explanation-card">
+                                <h4>🎭 States (The Circles)</h4>
+                                <p><strong>Like moods or conditions!</strong></p>
+                                <ul>
+                                    <li>Each circle is a "state" the object can be in</li>
+                                    <li><code>Unselected</code> = Object is just sitting there</li>
+                                    <li><code>Selected</code> = Object has control handles showing</li>
+                                    <li><code>Editing</code> = User is typing in a text object</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="explanation-card">
+                                <h4>🔄 Transitions (The Arrows)</h4>
+                                <p><strong>Like changing channels on TV!</strong></p>
+                                <ul>
+                                    <li>Arrows show how to move between states</li>
+                                    <li>Labels tell you what causes the change</li>
+                                    <li>"user clicks object" → moves from Unselected to Selected</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="explanation-card">
+                                <h4>📝 Notes (The Sticky Notes)</h4>
+                                <p><strong>Extra helpful information!</strong></p>
+                                <ul>
+                                    <li>Yellow notes explain what happens in each state</li>
+                                    <li>"Object shows control handles" = what you see when selected</li>
+                                    <li>Helps you understand the visual changes</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Reference -->
+        <section class="key-concepts">
+            <div class="container">
+                <h2>📋 Quick Reference Guide</h2>
+                <div class="concepts-grid">
+                    <div class="concept-card">
+                        <h3>🏗️ Class Diagram Symbols</h3>
+                        <div class="symbol-legend">
+                            <div class="symbol-row">
+                                <div class="symbol">📦</div>
+                                <div class="description"><strong>Rectangle:</strong> A class (template for objects)</div>
+                            </div>
+                            <div class="symbol-row">
+                                <div class="symbol">→</div>
+                                <div class="description"><strong>Arrow:</strong> "inherits from" or "is a type of"</div>
+                            </div>
+                            <div class="symbol-row">
+                                <div class="symbol">+</div>
+                                <div class="description"><strong>Plus sign:</strong> Public (anyone can use)</div>
+                            </div>
+                            <div class="symbol-row">
+                                <div class="symbol">-</div>
+                                <div class="description"><strong>Minus sign:</strong> Private (only this class can use)</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="concept-card">
+                        <h3>🌊 Flowchart Symbols</h3>
+                        <div class="symbol-legend">
+                            <div class="symbol-row">
+                                <div class="symbol">⬜</div>
+                                <div class="description"><strong>Rectangle:</strong> An action or process</div>
+                            </div>
+                            <div class="symbol-row">
+                                <div class="symbol">🔷</div>
+                                <div class="description"><strong>Diamond:</strong> A decision (yes/no question)</div>
+                            </div>
+                            <div class="symbol-row">
+                                <div class="symbol">⭕</div>
+                                <div class="description"><strong>Oval:</strong> Start or end point</div>
+                            </div>
+                            <div class="symbol-row">
+                                <div class="symbol">➡️</div>
+                                <div class="description"><strong>Arrow:</strong> Flow direction</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="concept-card">
+                        <h3>📞 Sequence Diagram Symbols</h3>
+                        <div class="symbol-legend">
+                            <div class="symbol-row">
+                                <div class="symbol">||</div>
+                                <div class="description"><strong>Vertical line:</strong> Lifeline (object exists)</div>
+                            </div>
+                            <div class="symbol-row">
+                                <div class="symbol">→</div>
+                                <div class="description"><strong>Solid arrow:</strong> Function call</div>
+                            </div>
+                            <div class="symbol-row">
+                                <div class="symbol">⇢</div>
+                                <div class="description"><strong>Dashed arrow:</strong> Return value</div>
+                            </div>
+                            <div class="symbol-row">
+                                <div class="symbol">⬇️</div>
+                                <div class="description"><strong>Time flows:</strong> Downward</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="concept-card">
+                        <h3>🎭 State Diagram Symbols</h3>
+                        <div class="symbol-legend">
+                            <div class="symbol-row">
+                                <div class="symbol">⭕</div>
+                                <div class="description"><strong>Circle:</strong> A state or condition</div>
+                            </div>
+                            <div class="symbol-row">
+                                <div class="symbol">●</div>
+                                <div class="description"><strong>Filled circle:</strong> Starting state</div>
+                            </div>
+                            <div class="symbol-row">
+                                <div class="symbol">→</div>
+                                <div class="description"><strong>Arrow:</strong> Transition between states</div>
+                            </div>
+                            <div class="symbol-row">
+                                <div class="symbol">📝</div>
+                                <div class="description"><strong>Note:</strong> Additional explanation</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Practice Section -->
+        <section class="getting-started">
+            <div class="container">
+                <h2>🎯 Practice: Test Your Understanding</h2>
+                <div class="practice-section">
+                    <h3>Look at this simple class diagram and answer:</h3>
+                    <div class="mermaid">
+                        classDiagram
+                            class Vehicle {
+                                +speed: number
+                                +start()
+                                +stop()
+                            }
+                            
+                            class Car {
+                                +doors: number
+                                +honk()
+                            }
+                            
+                            class Bicycle {
+                                +gears: number
+                                +pedal()
+                            }
+                            
+                            Vehicle <|-- Car
+                            Vehicle <|-- Bicycle
+                    </div>
+                    
+                    <div class="quiz-questions">
+                        <div class="question">
+                            <h4>❓ Questions to think about:</h4>
+                            <ul>
+                                <li>What properties do ALL vehicles have?</li>
+                                <li>What can only cars do that bicycles can't?</li>
+                                <li>If you create a new car, what methods will it automatically have?</li>
+                                <li>How is this similar to the Fabric.js object system?</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="answer">
+                            <h4>💡 Answers:</h4>
+                            <ul>
+                                <li><strong>All vehicles have:</strong> speed property, start() and stop() methods</li>
+                                <li><strong>Only cars can:</strong> honk() (bicycles don't have horns!)</li>
+                                <li><strong>New cars get:</strong> speed, start(), stop() from Vehicle + doors, honk() from Car</li>
+                                <li><strong>Like Fabric.js:</strong> All objects inherit from FabricObject, get common properties like position, then add their own special features</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Fabric.js Deep Dive Documentation. Created for educational purposes.</p>
+        </div>
+    </footer>
+
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true, 
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#667eea',
+                primaryTextColor: '#333',
+                primaryBorderColor: '#764ba2',
+                lineColor: '#333',
+                secondaryColor: '#f8f9fa',
+                tertiaryColor: '#e9ecef'
+            }
+        });
+    </script>
+</body>
+</html>

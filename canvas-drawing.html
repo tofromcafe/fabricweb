@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas Drawing - Fabric.js Deep Dive</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-container">
+                <h1 class="nav-logo">Fabric.js Deep Dive</h1>
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link">Home</a></li>
+                    <li><a href="architecture.html" class="nav-link">Architecture</a></li>
+                    <li><a href="codebase.html" class="nav-link">Codebase Analysis</a></li>
+                    <li><a href="canvas-drawing.html" class="nav-link active">Canvas Drawing</a></li>
+                    <li><a href="object-manipulation.html" class="nav-link">Object Manipulation</a></li>
+                    <li><a href="imports-exports.html" class="nav-link">Imports & Exports</a></li>
+                    <li><a href="demos.html" class="nav-link">Interactive Demos</a></li>
+                    <li><a href="diagram-guide.html" class="nav-link">Understanding Diagrams</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main style="padding-top: 90px;">
+        <section class="overview">
+            <div class="container">
+                <h1>Canvas Drawing: How Fabric.js Renders Objects</h1>
+                <p>Understand the rendering pipeline, drawing algorithms, and how Fabric.js transforms mathematical descriptions into visual elements on the HTML5 canvas.</p>
+            </div>
+        </section>
+
+        <section class="architecture-preview">
+            <div class="container">
+                <h2>Rendering Pipeline Overview</h2>
+                <div class="beginner-note">
+                    <h3>🌊 Understanding Flowcharts</h3>
+                    <p>This flowchart shows the step-by-step process of how Fabric.js draws objects on the canvas:</p>
+                    <ul>
+                        <li><strong>Rectangles = Actions</strong> (things the computer does)</li>
+                        <li><strong>Diamonds = Decisions</strong> (yes/no questions)</li>
+                        <li><strong>Arrows = Flow</strong> (the order of operations)</li>
+                    </ul>
+                    <p>Follow the arrows from top to bottom to see how rendering works! <a href="diagram-guide.html">📚 Learn more</a></p>
+                </div>
+                <div class="mermaid">
+                    flowchart TD
+                        A[Canvas.renderAll] --> B{Render Background}
+                        B --> C[Clear Canvas]
+                        C --> D[Apply Viewport Transform]
+                        D --> E[Render Objects Loop]
+                        
+                        E --> F{For Each Object}
+                        F --> G[Save Context]
+                        G --> H[Apply Object Transform]
+                        H --> I[Apply Clipping]
+                        I --> J[Object.render]
+                        J --> K[Apply Filters]
+                        K --> L[Restore Context]
+                        L --> M{More Objects?}
+                        M -->|Yes| F
+                        M -->|No| N[Render Controls]
+                        N --> O[Render Foreground]
+                        O --> P[Render Overlay]
+                        
+                        style A fill:#667eea,color:white
+                        style J fill:#f093fb,color:white
+                        style N fill:#4facfe,color:white
+                </div>
+                <p>The rendering pipeline processes objects in layers, applying transformations, clipping, and effects while maintaining proper stacking order.</p>
+            </div>
+        </section>
+
+        <section class="codebase-stats">
+            <div class="container">
+                <h2>Core Drawing Components</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>🎨 StaticCanvas - Base Renderer</h3>
+                        <div class="code-block">
+renderAll() {
+    if (this.destroyed) return this;
+    
+    this.renderBackground();
+    this._renderObjects(this.backgroundImage, this.overlayImage);
+    this.renderForeground();
+    this.renderOverlay();
+    
+    return this;
+}
+
+_renderObjects(backgroundImage, overlayImage) {
+    const objects = this._objects;
+    for (let i = 0; i &lt; objects.length; i++) {
+        objects[i].render(ctx);
+    }
+}</div>
+                        <p><strong>Purpose:</strong> Base canvas that handles object rendering without interaction. Manages the core rendering loop and layering system.</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h3>🔄 Transform System</h3>
+                        <div class="code-block">
+// From ObjectGeometry.ts
+calcTransformMatrix(skipGroup = false): TMat2D {
+    let matrix = this.calcOwnMatrix();
+    
+    if (this.group && !skipGroup) {
+        matrix = multiplyTransformMatrices(
+            this.group.calcTransformMatrix(false),
+            matrix
+        );
+    }
+    
+    return matrix;
+}
+
+// Matrix application during rendering
+_setLineDash(ctx: CanvasRenderingContext2D, dashArray?: number[]) {
+    if (!dashArray || !ctx.setLineDash) return;
+    ctx.setLineDash(dashArray);
+}</div>
+                        <p><strong>Purpose:</strong> Mathematical transformation system using 2D matrices for positioning, scaling, rotation, and skewing of objects.</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h3>🎯 Shape Rendering</h3>
+                        <div class="code-block">
+// Rectangle rendering (Rect.ts)
+_render(ctx: CanvasRenderingContext2D) {
+    const rx = this.rx || 0;
+    const ry = this.ry || 0;
+    const x = -this.width / 2;
+    const y = -this.height / 2;
+    const w = this.width;
+    const h = this.height;
+    
+    ctx.beginPath();
+    
+    if (rx || ry) {
+        // Rounded rectangle path
+        this._renderRoundedRect(ctx, x, y, w, h, rx, ry);
+    } else {
+        // Simple rectangle
+        ctx.rect(x, y, w, h);
+    }
+}</div>
+                        <p><strong>Purpose:</strong> Each shape implements its own rendering logic, drawing paths and applying fill/stroke styles to the canvas context.</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h3>✏️ Text Rendering</h3>
+                        <div class="code-block">
+// Text drawing with advanced typography
+_renderText(ctx: CanvasRenderingContext2D) {
+    const path = this.path;
+    
+    if (path) {
+        this._renderTextOnPath(ctx);
+    } else {
+        this._renderTextLines(ctx);
+    }
+}
+
+_renderTextLines(ctx: CanvasRenderingContext2D) {
+    for (let i = 0; i &lt; this._textLines.length; i++) {
+        this._renderTextLine(ctx, this._textLines[i], i);
+    }
+}</div>
+                        <p><strong>Purpose:</strong> Complex text rendering supporting multiple lines, text paths, character spacing, and font styling with canvas text metrics.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="key-concepts">
+            <div class="container">
+                <h2>Drawing Algorithms Deep Dive</h2>
+                <div class="concepts-grid">
+                    <div class="concept-card">
+                        <h3>Coordinate Transformation</h3>
+                        <p>Fabric.js uses a center-based coordinate system where objects are positioned by their center point, not top-left corner. Transformations are applied via matrix multiplication.</p>
+                        <div class="code-block">
+// Point transformation
+const transformed = point.transform([
+    scaleX, 0,      // Scale X, Skew Y
+    0,      scaleY, // Skew X, Scale Y  
+    left,   top     // Translate X, Y
+]);</div>
+                    </div>
+                    
+                    <div class="concept-card">
+                        <h3>Path Construction</h3>
+                        <p>Complex shapes build paths using Canvas 2D API methods. Fabric objects translate their mathematical description into canvas drawing commands.</p>
+                        <div class="code-block">
+// Circle path construction  
+ctx.beginPath();
+ctx.arc(0, 0, radius, 0, Math.PI * 2);
+ctx.closePath();
+
+// Apply fill and stroke
+if (this.fill) ctx.fill();
+if (this.stroke) ctx.stroke();</div>
+                    </div>
+                    
+                    <div class="concept-card">
+                        <h3>Clipping & Masking</h3>
+                        <p>Objects can have clipPath properties that mask their rendering area. The clipping path is rendered first, then used to constrain the object's drawing region.</p>
+                        <div class="code-block">
+// Clipping implementation
+if (this.clipPath) {
+    ctx.save();
+    this.clipPath.render(ctx);
+    ctx.clip();
+    this._render(ctx);
+    ctx.restore();
+}</div>
+                    </div>
+                    
+                    <div class="concept-card">
+                        <h3>Caching Strategy</h3>
+                        <p>Complex objects can be cached to off-screen canvases for performance. The cache is invalidated when object properties change, triggering re-rendering.</p>
+                        <div class="code-block">
+// Cache implementation
+if (this.shouldCache()) {
+    this._createCacheCanvas();
+    this._renderToCache(cacheCtx);
+    ctx.drawImage(this._cacheCanvas, ...);
+}</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="architecture-preview">
+            <div class="container">
+                <h2>Rendering Context Flow</h2>
+                <div class="mermaid">
+                    sequenceDiagram
+                        participant Canvas
+                        participant Context
+                        participant Object
+                        participant Transform
+                        participant Filters
+                        
+                        Canvas->>Context: getContext('2d')
+                        Canvas->>Context: save()
+                        Canvas->>Transform: calcTransformMatrix()
+                        Transform-->>Canvas: matrix [a,b,c,d,e,f]
+                        Canvas->>Context: transform(a,b,c,d,e,f)
+                        Canvas->>Object: render(ctx)
+                        Object->>Context: beginPath()
+                        Object->>Context: drawing commands
+                        Object->>Context: fill() / stroke()
+                        Object->>Filters: applyFilters(ctx)
+                        Filters-->>Object: filtered result
+                        Canvas->>Context: restore()
+                </div>
+                <p>Each object rendering involves saving context state, applying transformations, executing drawing commands, applying effects, and restoring state.</p>
+            </div>
+        </section>
+
+        <section class="codebase-stats">
+            <div class="container">
+                <h2>Advanced Rendering Features</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>🌈 Gradient Rendering</h3>
+                        <div class="code-block">
+// Linear gradient application
+applyGradient(ctx: CanvasRenderingContext2D, method: string) {
+    const gradient = ctx.createLinearGradient(
+        this.coords.x1, this.coords.y1,
+        this.coords.x2, this.coords.y2
+    );
+    
+    this.colorStops.forEach(stop => {
+        gradient.addColorStop(stop.offset, stop.color);
+    });
+    
+    ctx[method] = gradient;
+}</div>
+                        <p>Support for linear and radial gradients with multiple color stops, applied to fill and stroke properties of any object.</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h3>🖼️ Pattern Fills</h3>
+                        <div class="code-block">
+// Pattern creation and application
+const pattern = new fabric.Pattern({
+    source: imageElement,
+    repeat: 'repeat',
+    patternTransform: [1, 0, 0, 1, 0, 0]
+});
+
+// Applied during rendering
+const canvasPattern = ctx.createPattern(
+    this.source, 
+    this.repeat
+);
+ctx.fillStyle = canvasPattern;</div>
+                        <p>Image-based patterns with support for repetition modes and transformation matrices for complex fill effects.</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h3>🎭 Shadow Effects</h3>
+                        <div class="code-block">
+// Shadow configuration and rendering
+applyShadow(ctx: CanvasRenderingContext2D) {
+    if (!this.shadow) return;
+    
+    ctx.shadowColor = this.shadow.color;
+    ctx.shadowBlur = this.shadow.blur;
+    ctx.shadowOffsetX = this.shadow.offsetX;
+    ctx.shadowOffsetY = this.shadow.offsetY;
+    
+    // Handle shadow with object transformation
+    const matrix = this.calcTransformMatrix();
+    const offset = transformPoint(
+        { x: shadow.offsetX, y: shadow.offsetY }, 
+        matrix
+    );
+}</div>
+                        <p>Dynamic shadow effects that respect object transformations and can be applied to any drawable object.</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h3>🔍 Viewport Management</h3>
+                        <div class="code-block">
+// Viewport transformation and panning
+renderAll() {
+    const ctx = this.getContext();
+    
+    // Apply viewport transform for zooming/panning
+    ctx.save();
+    ctx.transform(...this.viewportTransform);
+    
+    this._renderObjects();
+    
+    ctx.restore();
+}
+
+// Coordinate conversion
+getViewportPoint(e: TPointerEvent): Point {
+    return new Point(e.clientX, e.clientY)
+        .subtract(this.calcOffset())
+        .transform(invertTransform(this.viewportTransform));
+}</div>
+                        <p>Viewport transformation enables zooming and panning while maintaining precise coordinate mapping between screen and canvas space.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="getting-started">
+            <div class="container">
+                <h2>Performance Optimizations</h2>
+                <div class="nav-cards">
+                    <div class="nav-card">
+                        <h3>🚀 Object Caching</h3>
+                        <p>Complex objects are rendered to off-screen canvases and cached for faster subsequent renders, especially useful for groups and filtered objects.</p>
+                    </div>
+                    <div class="nav-card">
+                        <h3>📦 Dirty Region Tracking</h3>
+                        <p>Only portions of the canvas that have changed are re-rendered, reducing computational overhead for large canvases with many static objects.</p>
+                    </div>
+                    <div class="nav-card">
+                        <h3>🎯 Culling & Clipping</h3>
+                        <p>Objects outside the viewport are skipped during rendering, and clipping regions optimize drawing operations for complex shapes.</p>
+                    </div>
+                    <div class="nav-card">
+                        <h3>⚡ GPU Acceleration</h3>
+                        <p>Filter operations can leverage WebGL for GPU-accelerated image processing, significantly improving performance for complex effects.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="key-concepts">
+            <div class="container">
+                <h2>Code Example: Complete Object Rendering</h2>
+                <div class="code-block">
+<div class="code-title">How a Rectangle Gets Drawn</div>
+// 1. Canvas initiates rendering
+canvas.renderAll();
+
+// 2. For each object, apply transformation
+const matrix = object.calcTransformMatrix();
+ctx.transform(...matrix);
+
+// 3. Object draws itself
+class Rect extends FabricObject {
+    _render(ctx: CanvasRenderingContext2D) {
+        const { width, height } = this;
+        const x = -width / 2;  // Center-based coordinates
+        const y = -height / 2;
+        
+        ctx.beginPath();
+        ctx.rect(x, y, width, height);
+        
+        if (this.fill) {
+            ctx.fillStyle = this.fill;
+            ctx.fill();
+        }
+        
+        if (this.stroke) {
+            ctx.strokeStyle = this.stroke;
+            ctx.lineWidth = this.strokeWidth;
+            ctx.stroke();
+        }
+    }
+}
+
+// 4. Apply any filters or effects
+if (object.filters?.length) {
+    applyFilters(ctx, object.filters);
+}
+
+// 5. Restore context for next object
+ctx.restore();</div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Fabric.js Deep Dive Documentation. Created for educational purposes.</p>
+        </div>
+    </footer>
+
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+</body>
+</html>
