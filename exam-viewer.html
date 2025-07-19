@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AQA FCB1 2021 Exam Viewer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/6.6.2/fabric.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+        
+        .toolbar {
+            background: white;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .toolbar button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            background: #007cba;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .toolbar button:hover {
+            background: #005a87;
+        }
+        
+        .toolbar button.active {
+            background: #ff6b35;
+        }
+        
+        .toolbar select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        
+        .toolbar input[type="color"] {
+            width: 40px;
+            height: 32px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .toolbar input[type="range"] {
+            width: 100px;
+        }
+        
+        .canvas-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .page-info {
+            background: #333;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .navigation {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            border-left: 2px solid #ddd;
+            padding-left: 10px;
+            margin-left: 10px;
+        }
+        
+        .document-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-left: 2px solid #ddd;
+            padding-left: 10px;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="toolbar">
+            <button id="penTool" class="active">✏️ Pen</button>
+            <button id="textTool">T Text</button>
+            <button id="eraseTool">🗑️ Erase</button>
+            <button id="clearAll">Clear All</button>
+            
+            <input type="color" id="colorPicker" value="#000000" title="Color">
+            <input type="range" id="brushSize" min="1" max="20" value="3" title="Brush Size">
+            <span id="brushSizeLabel">3px</span>
+            
+            <div class="zoom-controls">
+                <button id="zoomIn">🔍+</button>
+                <button id="zoomOut">🔍-</button>
+                <button id="zoomFit">Fit</button>
+                <span id="zoomLevel">100%</span>
+            </div>
+            
+            <div class="document-selector">
+                <label>Document:</label>
+                <select id="documentSelect">
+                    <option value="aqa-fcb1-2021">Question Paper</option>
+                    <option value="aqa-fcb1-2021-ms">Mark Scheme</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="canvas-container">
+            <div class="page-info">
+                <span id="pageInfo">Loading...</span>
+            </div>
+            <canvas id="examCanvas"></canvas>
+        </div>
+        
+        <div class="navigation">
+            <button id="prevPage">← Previous</button>
+            <select id="pageSelect"></select>
+            <button id="nextPage">Next →</button>
+        </div>
+    </div>
+
+    <script>
+        class ExamViewer {
+            constructor() {
+                this.canvas = new fabric.Canvas('examCanvas', {
+                    isDrawingMode: true,
+                    width: 800,
+                    height: 600
+                });
+                
+                this.currentDocument = 'aqa-fcb1-2021';
+                this.currentPage = 1;
+                this.documents = {
+                    'aqa-fcb1-2021': { pages: 36, name: 'Question Paper' },
+                    'aqa-fcb1-2021-ms': { pages: 19, name: 'Mark Scheme' }
+                };
+                this.backgroundImage = null;
+                this.currentTool = 'pen';
+                this.zoom = 1;
+                
+                this.initializeCanvas();
+                this.setupEventListeners();
+                this.loadPage();
+            }
+            
+            initializeCanvas() {
+                this.canvas.freeDrawingBrush.width = 3;
+                this.canvas.freeDrawingBrush.color = '#000000';
+                
+                // Enable panning when not drawing
+                this.canvas.on('mouse:down', (e) => {
+                    if (this.currentTool === 'pan' && !this.canvas.isDrawingMode) {
+                        this.canvas.isDragging = true;
+                        this.canvas.selection = false;
+                        this.canvas.lastPosX = e.e.clientX;
+                        this.canvas.lastPosY = e.e.clientY;
+                    }
+                });
+                
+                this.canvas.on('mouse:move', (e) => {
+                    if (this.canvas.isDragging) {
+                        const vpt = this.canvas.viewportTransform;
+                        vpt[4] += e.e.clientX - this.canvas.lastPosX;
+                        vpt[5] += e.e.clientY - this.canvas.lastPosY;
+                        this.canvas.requestRenderAll();
+                        this.canvas.lastPosX = e.e.clientX;
+                        this.canvas.lastPosY = e.e.clientY;
+                    }
+                });
+                
+                this.canvas.on('mouse:up', () => {
+                    this.canvas.isDragging = false;
+                    this.canvas.selection = true;
+                });
+            }
+            
+            setupEventListeners() {
+                // Tool selection
+                document.getElementById('penTool').addEventListener('click', () => this.setTool('pen'));
+                document.getElementById('textTool').addEventListener('click', () => this.setTool('text'));
+                document.getElementById('eraseTool').addEventListener('click', () => this.setTool('erase'));
+                document.getElementById('clearAll').addEventListener('click', () => this.clearDrawings());
+                
+                // Color and brush size
+                document.getElementById('colorPicker').addEventListener('change', (e) => {
+                    this.canvas.freeDrawingBrush.color = e.target.value;
+                });
+                
+                document.getElementById('brushSize').addEventListener('input', (e) => {
+                    const size = parseInt(e.target.value);
+                    this.canvas.freeDrawingBrush.width = size;
+                    document.getElementById('brushSizeLabel').textContent = size + 'px';
+                });
+                
+                // Zoom controls
+                document.getElementById('zoomIn').addEventListener('click', () => this.zoomCanvas(1.2));
+                document.getElementById('zoomOut').addEventListener('click', () => this.zoomCanvas(0.8));
+                document.getElementById('zoomFit').addEventListener('click', () => this.fitToScreen());
+                
+                // Navigation
+                document.getElementById('prevPage').addEventListener('click', () => this.previousPage());
+                document.getElementById('nextPage').addEventListener('click', () => this.nextPage());
+                document.getElementById('pageSelect').addEventListener('change', (e) => {
+                    this.currentPage = parseInt(e.target.value);
+                    this.loadPage();
+                });
+                
+                // Document selection
+                document.getElementById('documentSelect').addEventListener('change', (e) => {
+                    this.currentDocument = e.target.value;
+                    this.currentPage = 1;
+                    this.updatePageSelector();
+                    this.loadPage();
+                });
+                
+                // Text tool click
+                this.canvas.on('mouse:down', (e) => {
+                    if (this.currentTool === 'text' && e.target === null) {
+                        const pointer = this.canvas.getPointer(e.e);
+                        const text = new fabric.IText('Click to edit', {
+                            left: pointer.x,
+                            top: pointer.y,
+                            fill: document.getElementById('colorPicker').value,
+                            fontSize: 16
+                        });
+                        this.canvas.add(text);
+                        this.canvas.setActiveObject(text);
+                        text.enterEditing();
+                    }
+                });
+                
+                // Save drawings to localStorage
+                this.canvas.on('path:created', () => this.saveDrawings());
+                this.canvas.on('object:added', () => this.saveDrawings());
+                this.canvas.on('object:removed', () => this.saveDrawings());
+                this.canvas.on('object:modified', () => this.saveDrawings());
+            }
+            
+            setTool(tool) {
+                this.currentTool = tool;
+                
+                // Update button states
+                document.querySelectorAll('.toolbar button').forEach(btn => btn.classList.remove('active'));
+                document.getElementById(tool + 'Tool').classList.add('active');
+                
+                switch(tool) {
+                    case 'pen':
+                        this.canvas.isDrawingMode = true;
+                        this.canvas.selection = false;
+                        break;
+                    case 'text':
+                        this.canvas.isDrawingMode = false;
+                        this.canvas.selection = true;
+                        break;
+                    case 'erase':
+                        this.canvas.isDrawingMode = false;
+                        this.canvas.selection = true;
+                        break;
+                }
+            }
+            
+            loadPage() {
+                const pageStr = this.currentPage.toString().padStart(2, '0');
+                const imagePath = `exam/page-images/${this.currentDocument}-p-${pageStr}.png`;
+                
+                // Save current drawings before loading new page
+                this.saveDrawings();
+                
+                fabric.Image.fromURL(imagePath, (img) => {
+                    // Remove existing background
+                    if (this.backgroundImage) {
+                        this.canvas.remove(this.backgroundImage);
+                    }
+                    
+                    // Set canvas size to image size
+                    this.canvas.setDimensions({
+                        width: img.width,
+                        height: img.height
+                    });
+                    
+                    // Add background image
+                    img.set({
+                        left: 0,
+                        top: 0,
+                        selectable: false,
+                        evented: false
+                    });
+                    
+                    this.backgroundImage = img;
+                    this.canvas.add(img);
+                    this.canvas.sendToBack(img);
+                    
+                    // Clear drawings and load saved ones
+                    this.clearDrawings(false);
+                    this.loadDrawings();
+                    
+                    this.updatePageInfo();
+                    this.fitToScreen();
+                }, { crossOrigin: 'anonymous' });
+            }
+            
+            updatePageInfo() {
+                const docName = this.documents[this.currentDocument].name;
+                document.getElementById('pageInfo').textContent = 
+                    `${docName} - Page ${this.currentPage} of ${this.documents[this.currentDocument].pages}`;
+            }
+            
+            updatePageSelector() {
+                const select = document.getElementById('pageSelect');
+                select.innerHTML = '';
+                
+                for (let i = 1; i <= this.documents[this.currentDocument].pages; i++) {
+                    const option = document.createElement('option');
+                    option.value = i;
+                    option.textContent = `Page ${i}`;
+                    select.appendChild(option);
+                }
+                select.value = this.currentPage;
+            }
+            
+            previousPage() {
+                if (this.currentPage > 1) {
+                    this.currentPage--;
+                    document.getElementById('pageSelect').value = this.currentPage;
+                    this.loadPage();
+                }
+            }
+            
+            nextPage() {
+                if (this.currentPage < this.documents[this.currentDocument].pages) {
+                    this.currentPage++;
+                    document.getElementById('pageSelect').value = this.currentPage;
+                    this.loadPage();
+                }
+            }
+            
+            zoomCanvas(factor) {
+                this.zoom *= factor;
+                this.canvas.setZoom(this.zoom);
+                this.updateZoomDisplay();
+            }
+            
+            fitToScreen() {
+                if (!this.backgroundImage) return;
+                
+                const containerWidth = document.querySelector('.canvas-container').clientWidth - 40;
+                const containerHeight = window.innerHeight - 300;
+                
+                const scaleX = containerWidth / this.backgroundImage.width;
+                const scaleY = containerHeight / this.backgroundImage.height;
+                this.zoom = Math.min(scaleX, scaleY);
+                
+                this.canvas.setZoom(this.zoom);
+                this.canvas.viewportTransform[4] = 0;
+                this.canvas.viewportTransform[5] = 0;
+                this.canvas.requestRenderAll();
+                this.updateZoomDisplay();
+            }
+            
+            updateZoomDisplay() {
+                document.getElementById('zoomLevel').textContent = Math.round(this.zoom * 100) + '%';
+            }
+            
+            clearDrawings(save = true) {
+                const objects = this.canvas.getObjects().filter(obj => obj !== this.backgroundImage);
+                objects.forEach(obj => this.canvas.remove(obj));
+                if (save) this.saveDrawings();
+            }
+            
+            saveDrawings() {
+                const key = `drawings_${this.currentDocument}_${this.currentPage}`;
+                const objects = this.canvas.getObjects().filter(obj => obj !== this.backgroundImage);
+                const data = JSON.stringify(objects.map(obj => obj.toObject()));
+                localStorage.setItem(key, data);
+            }
+            
+            loadDrawings() {
+                const key = `drawings_${this.currentDocument}_${this.currentPage}`;
+                const data = localStorage.getItem(key);
+                
+                if (data) {
+                    const objects = JSON.parse(data);
+                    objects.forEach(objData => {
+                        fabric.util.enlivenObjects([objData], (enlivenedObjects) => {
+                            enlivenedObjects.forEach(obj => {
+                                this.canvas.add(obj);
+                            });
+                        });
+                    });
+                }
+            }
+        }
+        
+        // Initialize the exam viewer when page loads
+        window.addEventListener('load', () => {
+            const viewer = new ExamViewer();
+            viewer.updatePageSelector();
+        });
+    </script>
+</body>
+</html>
