@@ -800,8 +800,8 @@
                     pages: allAnnotations,
                     
                     settings: {
-                        defaultBrushSize: parseInt(document.getElementById('brushSize').value),
-                        defaultColor: document.getElementById('colorPicker').value,
+                        defaultBrushSize: parseInt(window.document.getElementById('brushSize').value),
+                        defaultColor: window.document.getElementById('colorPicker').value,
                         preferredTools: [this.currentTool]
                     }
                 };
