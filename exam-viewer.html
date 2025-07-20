@@ -245,6 +245,7 @@
                 this.zoom = 1;
                 this.allPageAnnotations = {}; // Store all pages' annotations in memory
                 this.currentPageKey = null; // Track current page for saving
+                this.isLoadingPage = false; // Flag to prevent auto-save during page loads
                 
                 this.initializeCanvas();
                 this.setupEventListeners();
@@ -514,6 +515,8 @@
             }
             
             loadPageWithoutSaving() {
+                this.isLoadingPage = true; // CRITICAL: Disable auto-save during loading
+                
                 const pageStr = this.currentPage.toString().padStart(2, '0');
                 const imagePath = `exam/page-images/${this.currentDocument}-p-${pageStr}.png`;
                 
@@ -546,8 +549,15 @@
                     // Clear canvas completely
                     this.clearCanvasOnly();
                     
-                    // Load annotations for new page
-                    this.loadPageFromMemory();
+                    // CRITICAL: Load annotations AFTER background is set up
+                    // Use setTimeout to ensure background is fully rendered first
+                    setTimeout(() => {
+                        this.loadPageFromMemory();
+                        this.canvas.sendToBack(this.backgroundImage); // Ensure background stays behind
+                        this.canvas.renderAll();
+                        this.isLoadingPage = false; // Re-enable auto-save after loading complete
+                        console.log(`Page ${this.currentPage} loading complete, auto-save re-enabled`);
+                    }, 10);
                     
                     this.updatePageInfo();
                     this.fitToScreen();
@@ -698,6 +708,12 @@
             }
             
             saveDrawings() {
+                // CRITICAL: Don't auto-save during page loading
+                if (this.isLoadingPage) {
+                    console.log(`Skipping auto-save during page load (page ${this.currentPage})`);
+                    return;
+                }
+                
                 const key = `drawings_${this.currentUser}_${this.currentDocument}_${this.currentPage}`;
                 const objects = this.canvas.getObjects().filter(obj => obj !== this.backgroundImage);
                 const data = JSON.stringify(objects.map(obj => obj.toObject()));
