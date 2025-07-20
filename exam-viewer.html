@@ -106,6 +106,23 @@
             padding-left: 10px;
             margin-left: 10px;
         }
+        
+        .keyboard-help {
+            background: #f8f9fa;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .keyboard-help kbd {
+            background: #e9ecef;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+            border: 1px solid #adb5bd;
+        }
     </style>
 </head>
 <body>
@@ -148,6 +165,13 @@
             <select id="pageSelect"></select>
             <button id="nextPage">Next →</button>
         </div>
+        
+        <div class="keyboard-help">
+            <strong>Numpad Shortcuts:</strong> 
+            <kbd>1</kbd> Previous Page | <kbd>3</kbd> Next Page | 
+            <kbd>4</kbd>←<kbd>6</kbd>→<kbd>8</kbd>↑<kbd>5</kbd>↓ Pan | 
+            <kbd>7</kbd> Zoom In | <kbd>9</kbd> Zoom Out
+        </div>
     </div>
 
     <script>
@@ -171,6 +195,7 @@
                 
                 this.initializeCanvas();
                 this.setupEventListeners();
+                this.setupKeyboardNavigation();
                 this.loadPage();
             }
             
@@ -265,6 +290,52 @@
                 this.canvas.on('object:added', () => this.saveDrawings());
                 this.canvas.on('object:removed', () => this.saveDrawings());
                 this.canvas.on('object:modified', () => this.saveDrawings());
+            }
+            
+            setupKeyboardNavigation() {
+                const panStep = 50; // pixels to pan per keypress
+                
+                document.addEventListener('keydown', (e) => {
+                    // Only handle numpad keys and prevent default behavior
+                    const numpadKeys = ['Numpad1', 'Numpad3', 'Numpad4', 'Numpad5', 'Numpad6', 'Numpad7', 'Numpad8', 'Numpad9'];
+                    if (!numpadKeys.includes(e.code)) return;
+                    
+                    e.preventDefault();
+                    
+                    switch(e.code) {
+                        case 'Numpad1': // Previous page
+                            this.previousPage();
+                            break;
+                        case 'Numpad3': // Next page
+                            this.nextPage();
+                            break;
+                        case 'Numpad4': // Pan left
+                            this.panCanvas(-panStep, 0);
+                            break;
+                        case 'Numpad6': // Pan right
+                            this.panCanvas(panStep, 0);
+                            break;
+                        case 'Numpad8': // Pan up
+                            this.panCanvas(0, -panStep);
+                            break;
+                        case 'Numpad5': // Pan down
+                            this.panCanvas(0, panStep);
+                            break;
+                        case 'Numpad7': // Zoom in
+                            this.zoomCanvas(1.2);
+                            break;
+                        case 'Numpad9': // Zoom out
+                            this.zoomCanvas(0.8);
+                            break;
+                    }
+                });
+            }
+            
+            panCanvas(deltaX, deltaY) {
+                const vpt = this.canvas.viewportTransform;
+                vpt[4] += deltaX;
+                vpt[5] += deltaY;
+                this.canvas.requestRenderAll();
             }
             
             setTool(tool) {
