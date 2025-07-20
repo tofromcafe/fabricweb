@@ -311,8 +311,6 @@
                 document.getElementById('prevPage').addEventListener('click', () => this.previousPage());
                 document.getElementById('nextPage').addEventListener('click', () => this.nextPage());
                 document.getElementById('pageSelect').addEventListener('change', (e) => {
-                    // SAVE CURRENT PAGE BEFORE CHANGING
-                    this.saveCurrentPageToMemory();
                     this.currentPage = parseInt(e.target.value);
                     this.updateCurrentPageKey();
                     this.loadPageWithoutSaving();
@@ -586,9 +584,25 @@
                         });
                     });
                 } else {
-                    // Fallback to localStorage
+                    // Fallback to localStorage and populate memory
                     console.log(`Loading page ${this.currentPage} from localStorage`);
-                    this.loadDrawings();
+                    const key = `drawings_${this.currentUser}_${this.currentDocument}_${this.currentPage}`;
+                    const data = localStorage.getItem(key);
+                    
+                    if (data) {
+                        const objects = JSON.parse(data);
+                        // Load to canvas
+                        objects.forEach(objData => {
+                            fabric.util.enlivenObjects([objData], (enlivenedObjects) => {
+                                enlivenedObjects.forEach(obj => {
+                                    this.canvas.add(obj);
+                                });
+                            });
+                        });
+                        // Also save to memory for next time
+                        this.allPageAnnotations[pageKey] = objects;
+                        console.log(`Loaded ${objects.length} objects from localStorage to memory`);
+                    }
                 }
             }
             
@@ -623,8 +637,6 @@
             
             previousPage() {
                 if (this.currentPage > 1) {
-                    // SAVE CURRENT PAGE BEFORE CHANGING
-                    this.saveCurrentPageToMemory();
                     this.currentPage--;
                     this.updateCurrentPageKey();
                     document.getElementById('pageSelect').value = this.currentPage;
@@ -634,8 +646,6 @@
             
             nextPage() {
                 if (this.currentPage < this.documents[this.currentDocument].pages) {
-                    // SAVE CURRENT PAGE BEFORE CHANGING
-                    this.saveCurrentPageToMemory();
                     this.currentPage++;
                     this.updateCurrentPageKey();
                     document.getElementById('pageSelect').value = this.currentPage;
@@ -680,13 +690,15 @@
                 const key = `drawings_${this.currentUser}_${this.currentDocument}_${this.currentPage}`;
                 const objects = this.canvas.getObjects().filter(obj => obj !== this.backgroundImage);
                 const data = JSON.stringify(objects.map(obj => obj.toObject()));
+                
+                // Save to localStorage
                 localStorage.setItem(key, data);
                 
-                // Also store in memory for file export
-                if (!this.allPageAnnotations[this.currentDocument]) {
-                    this.allPageAnnotations[this.currentDocument] = {};
-                }
-                this.allPageAnnotations[this.currentDocument][this.currentPage] = objects.map(obj => obj.toObject());
+                // CRITICAL: Also save to memory immediately
+                const pageKey = `${this.currentUser}_${this.currentDocument}_${this.currentPage}`;
+                this.allPageAnnotations[pageKey] = objects.map(obj => obj.toObject());
+                
+                console.log(`Auto-saved ${objects.length} objects to page ${this.currentPage}`);
             }
             
             loadDrawings() {
