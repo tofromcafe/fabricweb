@@ -311,9 +311,11 @@
                 document.getElementById('prevPage').addEventListener('click', () => this.previousPage());
                 document.getElementById('nextPage').addEventListener('click', () => this.nextPage());
                 document.getElementById('pageSelect').addEventListener('change', (e) => {
+                    // SAVE CURRENT PAGE BEFORE CHANGING
+                    this.saveCurrentPageToMemory();
                     this.currentPage = parseInt(e.target.value);
                     this.updateCurrentPageKey();
-                    this.loadPage();
+                    this.loadPageWithoutSaving();
                 });
                 
                 // User selection
@@ -509,11 +511,15 @@
             }
             
             loadPage() {
+                // For initial load only - don't save anything
+                this.loadPageWithoutSaving();
+            }
+            
+            loadPageWithoutSaving() {
                 const pageStr = this.currentPage.toString().padStart(2, '0');
                 const imagePath = `exam/page-images/${this.currentDocument}-p-${pageStr}.png`;
                 
-                // CRITICAL: Save current page annotations before switching
-                this.saveCurrentPageToMemory();
+                console.log(`Loading page ${this.currentPage} (${this.currentPageKey})`);
                 
                 fabric.Image.fromURL(imagePath, (img) => {
                     // Remove existing background
@@ -617,19 +623,23 @@
             
             previousPage() {
                 if (this.currentPage > 1) {
+                    // SAVE CURRENT PAGE BEFORE CHANGING
+                    this.saveCurrentPageToMemory();
                     this.currentPage--;
                     this.updateCurrentPageKey();
                     document.getElementById('pageSelect').value = this.currentPage;
-                    this.loadPage();
+                    this.loadPageWithoutSaving();
                 }
             }
             
             nextPage() {
                 if (this.currentPage < this.documents[this.currentDocument].pages) {
+                    // SAVE CURRENT PAGE BEFORE CHANGING
+                    this.saveCurrentPageToMemory();
                     this.currentPage++;
                     this.updateCurrentPageKey();
                     document.getElementById('pageSelect').value = this.currentPage;
-                    this.loadPage();
+                    this.loadPageWithoutSaving();
                 }
             }
             
