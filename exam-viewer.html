@@ -243,11 +243,13 @@
                 this.backgroundImage = null;
                 this.currentTool = 'pen';
                 this.zoom = 1;
-                this.allPageAnnotations = {}; // Store all pages' annotations
+                this.allPageAnnotations = {}; // Store all pages' annotations in memory
+                this.currentPageKey = null; // Track current page for saving
                 
                 this.initializeCanvas();
                 this.setupEventListeners();
                 this.setupKeyboardNavigation();
+                this.updateCurrentPageKey();
                 this.loadPage();
             }
             
@@ -310,12 +312,14 @@
                 document.getElementById('nextPage').addEventListener('click', () => this.nextPage());
                 document.getElementById('pageSelect').addEventListener('change', (e) => {
                     this.currentPage = parseInt(e.target.value);
+                    this.updateCurrentPageKey();
                     this.loadPage();
                 });
                 
                 // User selection
                 document.getElementById('userSelect').addEventListener('change', (e) => {
                     this.currentUser = e.target.value;
+                    this.updateCurrentPageKey();
                     this.updateUserColor();
                     this.loadUserAnnotations();
                 });
@@ -324,6 +328,7 @@
                 document.getElementById('documentSelect').addEventListener('change', (e) => {
                     this.currentDocument = e.target.value;
                     this.currentPage = 1;
+                    this.updateCurrentPageKey();
                     this.updatePageSelector();
                     this.loadPage();
                 });
@@ -507,8 +512,8 @@
                 const pageStr = this.currentPage.toString().padStart(2, '0');
                 const imagePath = `exam/page-images/${this.currentDocument}-p-${pageStr}.png`;
                 
-                // Save current drawings before loading new page
-                this.saveDrawings();
+                // CRITICAL: Save current page annotations before switching
+                this.saveCurrentPageToMemory();
                 
                 fabric.Image.fromURL(imagePath, (img) => {
                     // Remove existing background
@@ -534,13 +539,57 @@
                     this.canvas.add(img);
                     this.canvas.sendToBack(img);
                     
-                    // Clear drawings and load saved ones
-                    this.clearDrawings(false);
-                    this.loadDrawings();
+                    // Clear canvas completely
+                    this.clearCanvasOnly();
+                    
+                    // Load annotations for new page
+                    this.loadPageFromMemory();
                     
                     this.updatePageInfo();
                     this.fitToScreen();
                 }, { crossOrigin: 'anonymous' });
+            }
+            
+            saveCurrentPageToMemory() {
+                // Save to localStorage
+                this.saveDrawings();
+                
+                // Also save to memory for immediate access
+                const objects = this.canvas.getObjects().filter(obj => obj !== this.backgroundImage);
+                const pageKey = `${this.currentUser}_${this.currentDocument}_${this.currentPage}`;
+                
+                if (!this.allPageAnnotations[pageKey]) {
+                    this.allPageAnnotations[pageKey] = {};
+                }
+                this.allPageAnnotations[pageKey] = objects.map(obj => obj.toObject());
+                
+                console.log(`Saved page ${this.currentPage} annotations:`, objects.length, 'objects');
+            }
+            
+            loadPageFromMemory() {
+                const pageKey = `${this.currentUser}_${this.currentDocument}_${this.currentPage}`;
+                
+                // Try memory first (fastest)
+                if (this.allPageAnnotations[pageKey] && this.allPageAnnotations[pageKey].length > 0) {
+                    console.log(`Loading page ${this.currentPage} from memory:`, this.allPageAnnotations[pageKey].length, 'objects');
+                    this.allPageAnnotations[pageKey].forEach(objData => {
+                        fabric.util.enlivenObjects([objData], (enlivenedObjects) => {
+                            enlivenedObjects.forEach(obj => {
+                                this.canvas.add(obj);
+                            });
+                        });
+                    });
+                } else {
+                    // Fallback to localStorage
+                    console.log(`Loading page ${this.currentPage} from localStorage`);
+                    this.loadDrawings();
+                }
+            }
+            
+            clearCanvasOnly() {
+                // Remove all objects except background
+                const objects = this.canvas.getObjects().filter(obj => obj !== this.backgroundImage);
+                objects.forEach(obj => this.canvas.remove(obj));
             }
             
             updatePageInfo() {
@@ -562,9 +611,14 @@
                 select.value = this.currentPage;
             }
             
+            updateCurrentPageKey() {
+                this.currentPageKey = `${this.currentUser}_${this.currentDocument}_${this.currentPage}`;
+            }
+            
             previousPage() {
                 if (this.currentPage > 1) {
                     this.currentPage--;
+                    this.updateCurrentPageKey();
                     document.getElementById('pageSelect').value = this.currentPage;
                     this.loadPage();
                 }
@@ -573,6 +627,7 @@
             nextPage() {
                 if (this.currentPage < this.documents[this.currentDocument].pages) {
                     this.currentPage++;
+                    this.updateCurrentPageKey();
                     document.getElementById('pageSelect').value = this.currentPage;
                     this.loadPage();
                 }
