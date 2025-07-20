@@ -164,11 +164,28 @@
             </div>
             
             <div class="document-selector">
+                <label>User:</label>
+                <select id="userSelect">
+                    <option value="student-001">Alice Chen (Student)</option>
+                    <option value="student-002">Bob Martinez (Student)</option>
+                    <option value="instructor-001">Dr. Smith (Instructor)</option>
+                    <option value="ta-001">Sarah Kim (TA)</option>
+                    <option value="guest-001">Observer (Guest)</option>
+                </select>
+            </div>
+            
+            <div class="document-selector">
                 <label>Document:</label>
                 <select id="documentSelect">
                     <option value="aqa-fcb1-2021">Question Paper</option>
                     <option value="aqa-fcb1-2021-ms">Mark Scheme</option>
                 </select>
+            </div>
+            
+            <div class="document-selector">
+                <button id="saveAnnotations">💾 Save</button>
+                <button id="loadAnnotations">📁 Load</button>
+                <input type="file" id="fileInput" accept=".json" style="display: none;">
             </div>
         </div>
         
@@ -211,13 +228,22 @@
                 
                 this.currentDocument = 'aqa-fcb1-2021';
                 this.currentPage = 1;
+                this.currentUser = 'student-001';
                 this.documents = {
-                    'aqa-fcb1-2021': { pages: 36, name: 'Question Paper' },
-                    'aqa-fcb1-2021-ms': { pages: 19, name: 'Mark Scheme' }
+                    'aqa-fcb1-2021': { pages: 36, name: 'Question Paper', type: 'question-paper' },
+                    'aqa-fcb1-2021-ms': { pages: 19, name: 'Mark Scheme', type: 'mark-scheme' }
+                };
+                this.users = {
+                    'student-001': { name: 'Alice Chen', role: 'student', color: '#FF6B35' },
+                    'student-002': { name: 'Bob Martinez', role: 'student', color: '#007CBA' },
+                    'instructor-001': { name: 'Dr. Smith', role: 'instructor', color: '#8B5A96' },
+                    'ta-001': { name: 'Sarah Kim', role: 'ta', color: '#00A86B' },
+                    'guest-001': { name: 'Observer', role: 'guest', color: '#666666' }
                 };
                 this.backgroundImage = null;
                 this.currentTool = 'pen';
                 this.zoom = 1;
+                this.allPageAnnotations = {}; // Store all pages' annotations
                 
                 this.initializeCanvas();
                 this.setupEventListeners();
@@ -287,6 +313,13 @@
                     this.loadPage();
                 });
                 
+                // User selection
+                document.getElementById('userSelect').addEventListener('change', (e) => {
+                    this.currentUser = e.target.value;
+                    this.updateUserColor();
+                    this.loadUserAnnotations();
+                });
+                
                 // Document selection
                 document.getElementById('documentSelect').addEventListener('change', (e) => {
                     this.currentDocument = e.target.value;
@@ -294,6 +327,13 @@
                     this.updatePageSelector();
                     this.loadPage();
                 });
+                
+                // Save/Load annotations
+                document.getElementById('saveAnnotations').addEventListener('click', () => this.saveAnnotationsToFile());
+                document.getElementById('loadAnnotations').addEventListener('click', () => {
+                    document.getElementById('fileInput').click();
+                });
+                document.getElementById('fileInput').addEventListener('change', (e) => this.loadAnnotationsFromFile(e));
                 
                 // Text tool click
                 this.canvas.on('mouse:down', (e) => {
@@ -572,14 +612,20 @@
             }
             
             saveDrawings() {
-                const key = `drawings_${this.currentDocument}_${this.currentPage}`;
+                const key = `drawings_${this.currentUser}_${this.currentDocument}_${this.currentPage}`;
                 const objects = this.canvas.getObjects().filter(obj => obj !== this.backgroundImage);
                 const data = JSON.stringify(objects.map(obj => obj.toObject()));
                 localStorage.setItem(key, data);
+                
+                // Also store in memory for file export
+                if (!this.allPageAnnotations[this.currentDocument]) {
+                    this.allPageAnnotations[this.currentDocument] = {};
+                }
+                this.allPageAnnotations[this.currentDocument][this.currentPage] = objects.map(obj => obj.toObject());
             }
             
             loadDrawings() {
-                const key = `drawings_${this.currentDocument}_${this.currentPage}`;
+                const key = `drawings_${this.currentUser}_${this.currentDocument}_${this.currentPage}`;
                 const data = localStorage.getItem(key);
                 
                 if (data) {
@@ -592,6 +638,167 @@
                         });
                     });
                 }
+            }
+            
+            updateUserColor() {
+                const userColor = this.users[this.currentUser].color;
+                this.canvas.freeDrawingBrush.color = userColor;
+                document.getElementById('colorPicker').value = userColor;
+            }
+            
+            loadUserAnnotations() {
+                // Clear current annotations
+                this.clearDrawings(false);
+                // Load annotations for current user/document/page
+                this.loadDrawings();
+            }
+            
+            generateFileId() {
+                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                    const r = Math.random() * 16 | 0;
+                    const v = c == 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+            }
+            
+            generateDocumentHash(documentId) {
+                // Simple hash for demo - in production use actual PDF hash
+                let hash = 0;
+                for (let i = 0; i < documentId.length; i++) {
+                    const char = documentId.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash = hash & hash; // Convert to 32-bit integer
+                }
+                return 'sha256-' + Math.abs(hash).toString(16);
+            }
+            
+            saveAnnotationsToFile() {
+                // Collect all annotations from memory and localStorage
+                const allAnnotations = {};
+                
+                // Get annotations for all pages of current document
+                for (let page = 1; page <= this.documents[this.currentDocument].pages; page++) {
+                    const key = `drawings_${this.currentUser}_${this.currentDocument}_${page}`;
+                    const data = localStorage.getItem(key);
+                    if (data) {
+                        allAnnotations[page] = {
+                            annotations: JSON.parse(data),
+                            lastModified: new Date().toISOString(),
+                            annotationCount: JSON.parse(data).length
+                        };
+                    }
+                }
+                
+                const user = this.users[this.currentUser];
+                const document = this.documents[this.currentDocument];
+                const now = new Date().toISOString();
+                
+                const annotationFile = {
+                    annotationFileId: this.generateFileId(),
+                    fileVersion: "1.0.0",
+                    createdDate: now,
+                    lastModified: now,
+                    
+                    user: {
+                        userId: this.currentUser,
+                        userName: user.name,
+                        userRole: user.role
+                    },
+                    
+                    sourceDocument: {
+                        pdfFileName: `${this.currentDocument}.pdf`,
+                        documentId: this.currentDocument,
+                        documentHash: this.generateDocumentHash(this.currentDocument),
+                        pageCount: document.pages,
+                        documentType: document.type
+                    },
+                    
+                    annotationMetadata: {
+                        title: `${user.name}'s Annotations`,
+                        description: `Annotations for ${document.name}`,
+                        tags: [user.role, document.type],
+                        isComplete: false
+                    },
+                    
+                    pages: allAnnotations,
+                    
+                    settings: {
+                        defaultBrushSize: parseInt(document.getElementById('brushSize').value),
+                        defaultColor: document.getElementById('colorPicker').value,
+                        preferredTools: [this.currentTool]
+                    }
+                };
+                
+                // Generate filename
+                const userName = user.name.toLowerCase().replace(/\s+/g, '-');
+                const timestamp = new Date().toISOString().slice(0, 16).replace(/[T:]/g, '-');
+                const filename = `${this.currentDocument}_${userName}_${timestamp}.json`;
+                
+                // Download file
+                const blob = new Blob([JSON.stringify(annotationFile, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                console.log('Saved annotations file:', filename);
+                alert(`Annotations saved as: ${filename}`);
+            }
+            
+            loadAnnotationsFromFile(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const annotationFile = JSON.parse(e.target.result);
+                        
+                        // Validate file structure
+                        if (!annotationFile.sourceDocument || !annotationFile.user || !annotationFile.pages) {
+                            throw new Error('Invalid annotation file format');
+                        }
+                        
+                        // Check if document matches
+                        if (annotationFile.sourceDocument.documentId !== this.currentDocument) {
+                            if (!confirm(`This file is for ${annotationFile.sourceDocument.documentId}, but you're viewing ${this.currentDocument}. Load anyway?`)) {
+                                return;
+                            }
+                        }
+                        
+                        // Switch to the file's user if different
+                        if (annotationFile.user.userId !== this.currentUser) {
+                            this.currentUser = annotationFile.user.userId;
+                            document.getElementById('userSelect').value = this.currentUser;
+                            this.updateUserColor();
+                        }
+                        
+                        // Load annotations into localStorage
+                        Object.keys(annotationFile.pages).forEach(pageNum => {
+                            const pageData = annotationFile.pages[pageNum];
+                            const key = `drawings_${this.currentUser}_${this.currentDocument}_${pageNum}`;
+                            localStorage.setItem(key, JSON.stringify(pageData.annotations));
+                        });
+                        
+                        // Reload current page
+                        this.loadDrawings();
+                        
+                        console.log('Loaded annotations from:', file.name);
+                        alert(`Loaded annotations from: ${file.name}\nUser: ${annotationFile.user.userName}\nPages: ${Object.keys(annotationFile.pages).length}`);
+                        
+                    } catch (error) {
+                        console.error('Error loading annotation file:', error);
+                        alert('Error loading annotation file: ' + error.message);
+                    }
+                };
+                reader.readAsText(file);
+                
+                // Reset file input
+                event.target.value = '';
             }
         }
         
