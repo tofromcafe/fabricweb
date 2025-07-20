@@ -123,6 +123,25 @@
             font-family: monospace;
             border: 1px solid #adb5bd;
         }
+        
+        .keypress-debug {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            z-index: 1000;
+            min-width: 200px;
+        }
+        
+        .keypress-debug .current-key {
+            color: #00ff00;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -171,6 +190,13 @@
             <kbd>1</kbd> Previous Page | <kbd>3</kbd> Next Page | 
             <kbd>4</kbd>←<kbd>6</kbd>→<kbd>8</kbd>↑<kbd>5</kbd>↓ Pan | 
             <kbd>7</kbd> Zoom In | <kbd>9</kbd> Zoom Out
+        </div>
+        
+        <div class="keypress-debug" id="keypressDebug">
+            <div><strong>Keypress Debug (Num Lock ON)</strong></div>
+            <div>Last key: <span class="current-key" id="lastKey">None</span></div>
+            <div>Key code: <span id="keyCode">-</span></div>
+            <div>Key name: <span id="keyName">-</span></div>
         </div>
     </div>
 
@@ -296,39 +322,115 @@
                 const panStep = 50; // pixels to pan per keypress
                 
                 document.addEventListener('keydown', (e) => {
-                    // Only handle numpad keys and prevent default behavior
+                    // Debug display for all keypresses
+                    this.updateKeypressDebug(e);
+                    
+                    // Log to console
+                    console.log('Key pressed:', {
+                        key: e.key,
+                        code: e.code,
+                        keyCode: e.keyCode,
+                        which: e.which,
+                        location: e.location
+                    });
+                    
+                    // Handle numpad keys (both with code and keyCode fallback)
                     const numpadKeys = ['Numpad1', 'Numpad3', 'Numpad4', 'Numpad5', 'Numpad6', 'Numpad7', 'Numpad8', 'Numpad9'];
-                    if (!numpadKeys.includes(e.code)) return;
+                    const numpadKeyCodes = [97, 99, 100, 101, 102, 103, 104, 105]; // Num lock on
+                    
+                    let isNumpadKey = numpadKeys.includes(e.code) || numpadKeyCodes.includes(e.keyCode);
+                    
+                    // Also check for regular number keys as fallback
+                    if (!isNumpadKey && ['1', '3', '4', '5', '6', '7', '8', '9'].includes(e.key)) {
+                        isNumpadKey = true;
+                    }
+                    
+                    if (!isNumpadKey) return;
                     
                     e.preventDefault();
                     
-                    switch(e.code) {
-                        case 'Numpad1': // Previous page
-                            this.previousPage();
-                            break;
-                        case 'Numpad3': // Next page
-                            this.nextPage();
-                            break;
-                        case 'Numpad4': // Pan left
-                            this.panCanvas(-panStep, 0);
-                            break;
-                        case 'Numpad6': // Pan right
-                            this.panCanvas(panStep, 0);
-                            break;
-                        case 'Numpad8': // Pan up
-                            this.panCanvas(0, -panStep);
-                            break;
-                        case 'Numpad5': // Pan down
-                            this.panCanvas(0, panStep);
-                            break;
-                        case 'Numpad7': // Zoom in
-                            this.zoomCanvas(1.2);
-                            break;
-                        case 'Numpad9': // Zoom out
-                            this.zoomCanvas(0.8);
-                            break;
+                    // Map both code and key for flexibility
+                    const action = this.getNumpadAction(e.code, e.key, e.keyCode);
+                    if (action) {
+                        console.log('Executing action:', action);
+                        this.executeNumpadAction(action);
                     }
                 });
+            }
+            
+            updateKeypressDebug(e) {
+                document.getElementById('lastKey').textContent = e.key;
+                document.getElementById('keyCode').textContent = e.keyCode;
+                document.getElementById('keyName').textContent = e.code;
+            }
+            
+            getNumpadAction(code, key, keyCode) {
+                // Try code first (most reliable)
+                switch(code) {
+                    case 'Numpad1': return 'prevPage';
+                    case 'Numpad3': return 'nextPage';
+                    case 'Numpad4': return 'panLeft';
+                    case 'Numpad6': return 'panRight';
+                    case 'Numpad8': return 'panUp';
+                    case 'Numpad5': return 'panDown';
+                    case 'Numpad7': return 'zoomIn';
+                    case 'Numpad9': return 'zoomOut';
+                }
+                
+                // Fallback to keyCode
+                switch(keyCode) {
+                    case 97: return 'prevPage';  // Numpad1
+                    case 99: return 'nextPage';  // Numpad3
+                    case 100: return 'panLeft';  // Numpad4
+                    case 102: return 'panRight'; // Numpad6
+                    case 104: return 'panUp';    // Numpad8
+                    case 101: return 'panDown';  // Numpad5
+                    case 103: return 'zoomIn';   // Numpad7
+                    case 105: return 'zoomOut';  // Numpad9
+                }
+                
+                // Fallback to key
+                switch(key) {
+                    case '1': return 'prevPage';
+                    case '3': return 'nextPage';
+                    case '4': return 'panLeft';
+                    case '6': return 'panRight';
+                    case '8': return 'panUp';
+                    case '5': return 'panDown';
+                    case '7': return 'zoomIn';
+                    case '9': return 'zoomOut';
+                }
+                
+                return null;
+            }
+            
+            executeNumpadAction(action) {
+                switch(action) {
+                    case 'prevPage':
+                        this.previousPage();
+                        break;
+                    case 'nextPage':
+                        this.nextPage();
+                        break;
+                    case 'panLeft':
+                        this.panCanvas(-50, 0);
+                        break;
+                    case 'panRight':
+                        this.panCanvas(50, 0);
+                        break;
+                    case 'panUp':
+                        this.panCanvas(0, -50);
+                        break;
+                    case 'panDown':
+                        this.panCanvas(0, 50);
+                        break;
+                    case 'zoomIn':
+                        this.zoomCanvas(1.2);
+                        break;
+                    case 'zoomOut':
+                        this.zoomCanvas(0.8);
+                        break;
+                }
             }
             
             panCanvas(deltaX, deltaY) {
