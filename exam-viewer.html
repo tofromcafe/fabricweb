@@ -576,10 +576,15 @@
                 // Try memory first (fastest)
                 if (this.allPageAnnotations[pageKey] && this.allPageAnnotations[pageKey].length > 0) {
                     console.log(`Loading page ${this.currentPage} from memory:`, this.allPageAnnotations[pageKey].length, 'objects');
-                    this.allPageAnnotations[pageKey].forEach(objData => {
+                    console.log('Memory data:', this.allPageAnnotations[pageKey]);
+                    
+                    this.allPageAnnotations[pageKey].forEach((objData, index) => {
+                        console.log(`Enlivening object ${index}:`, objData);
                         fabric.util.enlivenObjects([objData], (enlivenedObjects) => {
                             enlivenedObjects.forEach(obj => {
+                                console.log('Adding object to canvas:', obj);
                                 this.canvas.add(obj);
+                                this.canvas.renderAll();
                             });
                         });
                     });
@@ -591,17 +596,23 @@
                     
                     if (data) {
                         const objects = JSON.parse(data);
+                        console.log('localStorage data:', objects);
                         // Load to canvas
-                        objects.forEach(objData => {
+                        objects.forEach((objData, index) => {
+                            console.log(`Enlivening localStorage object ${index}:`, objData);
                             fabric.util.enlivenObjects([objData], (enlivenedObjects) => {
                                 enlivenedObjects.forEach(obj => {
+                                    console.log('Adding localStorage object to canvas:', obj);
                                     this.canvas.add(obj);
+                                    this.canvas.renderAll();
                                 });
                             });
                         });
                         // Also save to memory for next time
                         this.allPageAnnotations[pageKey] = objects;
                         console.log(`Loaded ${objects.length} objects from localStorage to memory`);
+                    } else {
+                        console.log('No data found in localStorage');
                     }
                 }
             }
