@@ -767,7 +767,7 @@
                 }
                 
                 const user = this.users[this.currentUser];
-                const document = this.documents[this.currentDocument];
+                const documentInfo = this.documents[this.currentDocument];
                 const now = new Date().toISOString();
                 
                 const annotationFile = {
@@ -786,22 +786,22 @@
                         pdfFileName: `${this.currentDocument}.pdf`,
                         documentId: this.currentDocument,
                         documentHash: this.generateDocumentHash(this.currentDocument),
-                        pageCount: document.pages,
-                        documentType: document.type
+                        pageCount: documentInfo.pages,
+                        documentType: documentInfo.type
                     },
                     
                     annotationMetadata: {
                         title: `${user.name}'s Annotations`,
-                        description: `Annotations for ${document.name}`,
-                        tags: [user.role, document.type],
+                        description: `Annotations for ${documentInfo.name}`,
+                        tags: [user.role, documentInfo.type],
                         isComplete: false
                     },
                     
                     pages: allAnnotations,
                     
                     settings: {
-                        defaultBrushSize: parseInt(window.document.getElementById('brushSize').value),
-                        defaultColor: window.document.getElementById('colorPicker').value,
+                        defaultBrushSize: parseInt(document.getElementById('brushSize').value),
+                        defaultColor: document.getElementById('colorPicker').value,
                         preferredTools: [this.currentTool]
                     }
                 };
