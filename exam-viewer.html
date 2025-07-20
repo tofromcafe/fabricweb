@@ -750,6 +750,10 @@
             }
             
             saveAnnotationsToFile() {
+                console.log('saveAnnotationsToFile called');
+                console.log('Global document:', typeof document);
+                console.log('document.getElementById:', typeof document.getElementById);
+                
                 // Collect all annotations from memory and localStorage
                 const allAnnotations = {};
                 
@@ -800,8 +804,8 @@
                     pages: allAnnotations,
                     
                     settings: {
-                        defaultBrushSize: parseInt(document.getElementById('brushSize').value),
-                        defaultColor: document.getElementById('colorPicker').value,
+                        defaultBrushSize: parseInt(window.document.getElementById('brushSize').value),
+                        defaultColor: window.document.getElementById('colorPicker').value,
                         preferredTools: [this.currentTool]
                     }
                 };
